@@ -18,7 +18,7 @@ CC=sdcc
 AR=sdar
 # Specify Z80 as the target, compile without linking, and place all the code in TEXT section
 # (_CODE must be replace).
-CFLAGS=-mz80 -c --codeseg TEXT -I$(ZVB_INCLUDE)
+CFLAGS=-mz80 -c --codeseg TEXT -I$(ZVB_INCLUDE) --opt-code-speed
 
 .PHONY: all clean
 

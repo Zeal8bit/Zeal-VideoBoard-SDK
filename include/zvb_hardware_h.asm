@@ -34,7 +34,7 @@
     ; Physical address for the I/O components.
     ; The video mapper is responsible for mapping the I/O component in the I/O bank
     ; starting at address 0xA0, up to 0xAF (16 registers)
-    ; It also contains the current version of the video chip.
+    ; It also contains the current firmware version of the video board.
     DEFC VID_IO_MAPPER       = 0x80
         DEFC IO_MAPPER_REV   = VID_IO_MAPPER + 0x0
         DEFC IO_MAPPER_MIN   = VID_IO_MAPPER + 0x1
@@ -80,7 +80,7 @@
     ; ----------------------------------------------------------------------- ;
     ; Banked Text Control module, usable in text mode (640x480 or 320x240)    ;
     ; ----------------------------------------------------------------------- ;
-    DEFC BANK_IO_TEXT_NUM = 0;
+    DEFC BANK_IO_TEXT_NUM = 0
 
     DEFC IO_TEXT_PRINT_CHAR = VID_IO_BANKED_ADDR + 0x0 ; (WO)
     DEFC IO_TEXT_CURS_Y     = VID_IO_BANKED_ADDR + 0x1 ; (R/W) Cursor Y position (in characters count)
@@ -89,8 +89,8 @@
     DEFC IO_TEXT_SCROLL_X   = VID_IO_BANKED_ADDR + 0x4 ; (R/W) Scroll X
     DEFC IO_TEXT_COLOR      = VID_IO_BANKED_ADDR + 0x5 ; (R/W) Current character color
     DEFC IO_TEXT_CURS_TIME  = VID_IO_BANKED_ADDR + 0x6 ; (R/W) Blink time, in frames, for the cursor
-    DEFC IO_TEXT_CURS_CHAR  = VID_IO_BANKED_ADDR + 0x7 ; (R/W) Blink time, in frames, for the cursor
-    DEFC IO_TEXT_CURS_COLOR = VID_IO_BANKED_ADDR + 0x8 ; (R/W) Blink time, in frames, for the cursor
+    DEFC IO_TEXT_CURS_CHAR  = VID_IO_BANKED_ADDR + 0x7 ; (R/W) Character from the font table for the cursor
+    DEFC IO_TEXT_CURS_COLOR = VID_IO_BANKED_ADDR + 0x8 ; (R/W) Background and foreground colors for the cursor
     ; Control register, check the flags below to see what can be achieved
     DEFC IO_TEXT_CTRL_REG   = VID_IO_BANKED_ADDR + 0x9
         DEFC IO_TEXT_SAVE_CURSOR_BIT    = 7  ; Save the current cursor position (single save only)
