@@ -283,11 +283,11 @@ IOB(ZVB_PERI_BASE + 0xd) zvb_peri_sound_hold;
  * Bit 7 can be used to disable the outptu completely. Lowest two bits control the volume.
  */
 IOB(ZVB_PERI_BASE + 0xe) zvb_peri_sound_master_vol;
-#define ZVB_PERI_SOUND_VOL_DISABLE = 0x80  // Disables master volume (volume = 0)
-#define ZVB_PERI_SOUND_VOL_25      = 0x00  // Volume = 25%
-#define ZVB_PERI_SOUND_VOL_50      = 0x01  // Volume = 50%
-#define ZVB_PERI_SOUND_VOL_75      = 0x02  // Volume = 75%
-#define ZVB_PERI_SOUND_VOL_100     = 0x03  // Volume = 100%
+#define ZVB_PERI_SOUND_VOL_DISABLE  0x80  // Disables master volume (volume = 0)
+#define ZVB_PERI_SOUND_VOL_25       0x00  // Volume = 25%
+#define ZVB_PERI_SOUND_VOL_50       0x01  // Volume = 50%
+#define ZVB_PERI_SOUND_VOL_75       0x02  // Volume = 75%
+#define ZVB_PERI_SOUND_VOL_100      0x03  // Volume = 100%
 
 /**
  * @brief Register 0xF is a bitmap that selects/deselects the voice that will be configurable via registers above (frequency and waveform)
