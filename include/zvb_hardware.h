@@ -262,7 +262,7 @@ IOB(ZVB_PERI_BASE + 0x7) zvb_peri_crc_byte3;    // (RO) Byte 3 of the resulting 
  * Where `sample_rate` is 44100 and `freq` is the 16-bit value defined below (register 0 and 1)
  */
 IOB(ZVB_PERI_BASE + 0x0) zvb_peri_sound_freq_low;   // (WO) Low byte of the 16-bit frequency. Value taken into account *after* high byte HIGH byte is written
-IOB(ZVB_PERI_BASE + 0x0) zvb_peri_sound_freq_high;  // (WO) High byte of the 16-bit frequency, latches the previously written low byte
+IOB(ZVB_PERI_BASE + 0x1) zvb_peri_sound_freq_high;  // (WO) High byte of the 16-bit frequency, latches the previously written low byte
 
 IOB(ZVB_PERI_BASE + 0x2) zvb_peri_sound_wave;   // (WO) Write the lowest 2 bits to choose the waveform
 #define ZVB_PERI_SOUND_SQUARE    0

@@ -22,7 +22,7 @@ CFLAGS=-mz80 -c --codeseg TEXT -I$(ZVB_INCLUDE) --opt-code-speed
 
 .PHONY: all clean
 
-all: $(OUTPUT_DIR) $(OUTPUT_DIR)/zvb_gfx.lib $(OUTPUT_DIR)/zvb_crc.lib
+all: $(OUTPUT_DIR) $(OUTPUT_DIR)/zvb_gfx.lib $(OUTPUT_DIR)/zvb_crc.lib $(OUTPUT_DIR)/zvb_sound.lib
 	@bash -c 'echo -e "\x1b[32;1mSuccess, libraries generated\x1b[0m"'
 
 $(OUTPUT_DIR):
@@ -34,6 +34,11 @@ $(OUTPUT_DIR)/zvb_gfx.lib: $(INPUT_DIR)/zvb_gfx.c
 
 
 $(OUTPUT_DIR)/zvb_crc.lib: $(INPUT_DIR)/zvb_crc.c
+	$(CC) $(CFLAGS) -o $(OUTPUT_DIR)/ $^
+	$(AR) -rc $@ $(patsubst $(INPUT_DIR)/%.c,$(OUTPUT_DIR)/%.rel,$^)
+
+
+$(OUTPUT_DIR)/zvb_sound.lib: $(INPUT_DIR)/zvb_sound.c
 	$(CC) $(CFLAGS) -o $(OUTPUT_DIR)/ $^
 	$(AR) -rc $@ $(patsubst $(INPUT_DIR)/%.c,$(OUTPUT_DIR)/%.rel,$^)
 
