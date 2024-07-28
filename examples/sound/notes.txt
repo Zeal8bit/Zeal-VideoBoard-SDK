@@ -1,0 +1,33 @@
+; File with the notes to play, comments start with semi-colon (;)
+; One note per line, of the form NAME OCTAVE [#]
+; Available directives:
+; '=[50-1000]' sets the duration of the notes in milliseconds
+; '-'          inserts a pause of a single note duration
+; 'T[0-2]'     sets the waveform, where 0 is square, 1 is triangle and 2 is sawtooth
+=200
+T2
+FA4
+LA4
+SI4
+-
+FA4
+LA4
+SI4
+-
+FA4
+LA4
+SI4
+MI5
+RE5
+-
+SI4
+DO5
+SI4
+SOL4
+MI4
+MI4
+MI4
+RE4
+MI4
+SOL4
+MI4
