@@ -257,9 +257,11 @@ IOB(ZVB_PERI_BASE + 0x7) zvb_peri_crc_byte3;    // (RO) Byte 3 of the resulting 
  */
 #define ZVB_PERI_SOUND_IDX   3
 
+/* ---- The following registers are only for voices 0 to 3 --- */
+
 /**
  * @brief The resulting frequency, in Hz can be calculated with the formula: (sample_rate * freq) / 2^16
- * Where `sample_rate` is 44100 and `freq` is the 16-bit value defined below (register 0 and 1)
+ * Where `sample_rate` is 44091 and `freq` is the 16-bit value defined below (register 0 and 1)
  */
 IOB(ZVB_PERI_BASE + 0x0) zvb_peri_sound_freq_low;   // (WO) Low byte of the 16-bit frequency. Value taken into account *after* high byte HIGH byte is written
 IOB(ZVB_PERI_BASE + 0x1) zvb_peri_sound_freq_high;  // (WO) High byte of the 16-bit frequency, latches the previously written low byte
@@ -270,13 +272,38 @@ IOB(ZVB_PERI_BASE + 0x2) zvb_peri_sound_wave;   // (WO) Write the lowest 2 bits 
 #define ZVB_PERI_SOUND_SAWTOOTH  2
 #define ZVB_PERI_SOUND_NOISE     3
 
+/* ---- The following registers are only for the custom sample table voice (7) --- */
+
+/**
+ * @brief The sample table voice has a 256-byte FIFO, writing to this register fills it.
+ *        Each sample can be 8-bit or 16-bit (little-endian)
+ */
+IOB(ZVB_PERI_BASE + 0x0) zvb_peri_sound_sample_fifo;   // (WO)
+
+/**
+ * @brief Sample rate divider. This value determines how fast the samples will be read and outputted
+ * from the FIFO. The final sample rate will be calculated as: 44091/(divider + 1)
+ *
+ * For example, to get a sample rate of 44091, this register must be set to 0.
+ */
+IOB(ZVB_PERI_BASE + 0x1) zvb_peri_sound_sample_div;   // (R/W)
+
+/**
+ * @brief Configuration register for this sample voice
+ */
+IOB(ZVB_PERI_BASE + 0x2) zvb_peri_sound_sample_conf;   // (R/W)
+#define ZVB_SAMPLE_CONF_SIZE_BIT    0   // 1: (unsigned) 8 bit mode, 0: 16-bit mode
+#define ZVB_SAMPLE_CONF_RSVD_BIT    1
+#define ZVB_SAMPLE_CONF_SIGN_BIT    2   // Only for 16-bit mode, ignored for 8-bit mode. 1: signed samples, 0: unsigned samples
+#define ZVB_SAMPLE_CONF_READY_BIT   7   // (RO) When 1, the FIFO is empty/all samples have been played
+
+/* ---- The following registers are the "master" registers, affecting all registers ---- */
 
 /**
  * @brief (WO) Bitmap where bit i holds voice i (1 = on hold, 0 = can output sound)
  * This is convenient to start two or more voices at the exact same time.
  */
 IOB(ZVB_PERI_BASE + 0xd) zvb_peri_sound_hold;
-
 
 /**
  * @brief (WO) Master volume, controls the output of all the voices

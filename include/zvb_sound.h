@@ -9,14 +9,15 @@
 #include <stdint.h>
 #include "zvb_hardware.h"
 
-#define SOUND_FREQ_TO_DIV(FREQ)     (44100*(FREQ) / 65536)
+#define SOUND_FREQ_TO_DIV(FREQ)     (44091*(FREQ) / 65536)
+#define SOUND_SAMPLE_TABLE_SIZE     256
 
 typedef enum {
     VOICE0 = 1 << 0,
     VOICE1 = 1 << 1,
     VOICE2 = 1 << 2,
     VOICE3 = 1 << 3,
-    WAVTAB = 1 << 7,
+    SAMPTAB = 1 << 7,
 } sound_voice_t;
 
 
@@ -42,12 +43,26 @@ typedef enum {
 } sound_volume_t;
 
 
+typedef enum {
+    SAMPLE_UINT8,   // Unsigned 8-bit samples
+    SAMPLE_UINT16,  // Unsigned 16-bit samples
+    SAMPLE_SINT16,  // Signed 16-bit samples
+} sample_int;
+
+/**
+ * @brief Configuration for the sample table voice
+ */
+ typedef struct {
+    sample_int mode;    // When set, the samples are 8-bit unsigned values
+    uint8_t divider;    // Sample rate divider
+ } sound_samples_conf_t;
+
 /**
  * @brief Function version of the frequency to divider converter
  */
 static inline uint16_t zvb_sound_freq_to_div(uint16_t frequency)
 {
-    return (44100 * frequency) / 65536;
+    return (44091 * frequency) / 65536;
 }
 
 /**
@@ -84,3 +99,15 @@ void zvb_sound_set_hold(sound_voice_t voices, uint8_t hold);
  * @brief Set the master volume than will affect all the voices.
  */
 void zvb_sound_set_volume(sound_volume_t vol);
+
+
+/**
+ * @brief Play samples on the sample table voice
+ *
+ *
+ * @param div Sample rate divider to play the samples at. The resulting sample rate
+               is 44100/div
+ * @param samples Table containing the samples to play
+ * @param length Length of the table
+ */
+void zvb_sound_play_samples(sound_samples_conf_t* config, void* samples, uint16_t length);
