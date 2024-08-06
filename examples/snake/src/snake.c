@@ -11,11 +11,14 @@
 #include <zos_vfs.h>
 #include <zos_keyboard.h>
 #include <zos_time.h>
+#include <zos_video.h>
 #include <zvb_gfx.h>
+#include "controller.h"
 #include "snake.h"
 
 #define MINIMUM_WAIT  200
 
+static void play(void);
 static void init_game(void);
 static void wait(void);
 static void draw(void);
@@ -33,6 +36,7 @@ static void update_score(void);
 Snake snake;
 Point fruit;
 gfx_context vctx;
+int controller_mode;
 
 /**
  * @brief Palette for the graphics tiles including the snake, the apple and the background
@@ -52,7 +56,19 @@ const uint8_t letters_palette[] = {
   0x00, 0x00, 0x83, 0xa8, 0xcb, 0xf1, 0xc7, 0xfc, 0x52, 0xff, 0xff, 0xff
 };
 
-int main(void) {
+int main(int argc, char** argv) {
+    if (argc == 1){
+        char* param = strtok(argv[0], " ");
+        if (param && (strcmp(param, "-c") == 0)) {
+            controller_mode = 1;
+            controller_init();
+        }
+    }
+    play();
+    return 0;
+}
+
+static void play(void) {
     init_game();
 
     print_string("SCORE:", WIDTH - 10, HEIGHT);
@@ -79,8 +95,8 @@ int main(void) {
         read(DEV_STDIN, &key, &size);
     } while (size != 1);
 
-    return main();
-    // return 0;
+    // ioctl(DEV_STDOUT, CMD_RESET_SCREEN, NULL);
+    play();
 }
 
 static void end_game(void) {
@@ -323,11 +339,19 @@ static void input(void) {
     uint16_t size = 32;
     const int8_t last_direction = snake.former_direction;
     int8_t chosen = -1;
+    uint8_t exit = 0;
 
-    while (1) {
+    while (!exit) {
+        /* Give priority to the keyboard, if no key is detected, check the external controller */
         read(DEV_STDIN, keys, &size);
         /* Since we are in non-blocking mode, `read` syscall can return 0 */
-        if (size == 0) break;
+        if (size == 0 && controller_mode) {
+            size = read_controller(keys);
+            exit = 1;
+        }
+        
+        if (size == 0)
+            break;
 
         for (uint8_t i = 0; i < size; i++) {
             if (keys[i] == KB_RELEASED) {

@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #define WIDTH 20
 /* Keep one line at the bottom for the score */
 #define HEIGHT 14
