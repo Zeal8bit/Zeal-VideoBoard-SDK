@@ -7,7 +7,7 @@
 SHELL := /bin/bash
 
 # Specify the files to compile and the name of the final binary
-SRCS=snake.c
+SRCS=snake.c controller.c
 BIN=snake.bin
 
 # Directory where source files are and where the binaries will be put
