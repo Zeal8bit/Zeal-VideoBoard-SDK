@@ -144,3 +144,6 @@ gfx_error gfx_wait_vblank(gfx_context* ctx);
  * @param context Graphics context, must be initialized
  */
 gfx_error gfx_wait_end_vblank(gfx_context* ctx);
+
+
+#include "zvb_sprite.h"

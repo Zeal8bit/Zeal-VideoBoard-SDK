@@ -309,3 +309,120 @@ gfx_error gfx_wait_end_vblank(gfx_context* ctx)
     }
     return GFX_SUCCESS;
 }
+
+
+/**
+ * Sprites related functions
+ */
+
+gfx_error gfx_sprite_render(gfx_context* ctx, uint8_t sprite_idx, const gfx_sprite* sprite)
+{
+    if (sprite_idx >= GFX_SPRITES_COUNT || ctx == NULL || sprite == NULL) {
+        return GFX_INVALID_ARG;
+    }
+
+    /* The sprite VRAM is write-only */
+    gfx_sprite* wo_sprites = (gfx_sprite*) VID_MEM_SPRITE_ADDR;
+    gfx_sprite* destination = &wo_sprites[sprite_idx];
+
+    gfx_map_vram();
+    memcpy(destination, sprite, SPRITE_STRUCT_SIZE);
+    gfx_demap_vram(ctx->backup_page);
+
+    return GFX_SUCCESS;
+}
+
+
+gfx_error gfx_sprite_render_array(gfx_context* ctx, uint8_t from_idx, const gfx_sprite* sprites, uint8_t length)
+{
+    /* Making these two pointers static will make the code faster since they won't be on the stack */
+    static gfx_sprite* destination;
+    static const gfx_sprite* src;
+
+    if (from_idx + length > GFX_SPRITES_COUNT || ctx == NULL || sprites == NULL) {
+        return GFX_INVALID_ARG;
+    }
+
+    /* The sprite VRAM is write-only */
+    gfx_sprite* wo_sprites = (gfx_sprite*) VID_MEM_SPRITE_ADDR;
+    
+    destination = &wo_sprites[from_idx];
+    src = sprites;
+
+    for (uint8_t i = 0; i < length; i++) {
+        gfx_map_vram();
+        /**
+         * We cannot use a single memcpy for two reasons:
+         * - Two bytes of the structure are padding, so it would be unnecessary bytes copied
+         * - We must not hold the interrupt for too long
+         */
+        memcpy(destination++, src++, SPRITE_STRUCT_SIZE);
+        gfx_demap_vram(ctx->backup_page);
+    }
+
+    return GFX_SUCCESS;
+}
+
+gfx_error gfx_sprite_set_x(gfx_context* ctx, uint8_t sprite_idx, uint16_t x)
+{
+    if (sprite_idx >= GFX_SPRITES_COUNT || ctx == NULL) {
+        return GFX_INVALID_ARG;
+    }
+
+    /* The sprite VRAM is write-only */
+    gfx_sprite* wo_sprites = (gfx_sprite*) VID_MEM_SPRITE_ADDR;
+    gfx_sprite* destination = &wo_sprites[sprite_idx];
+    gfx_map_vram();
+    destination->x = x;
+    gfx_demap_vram(ctx->backup_page);
+
+    return GFX_SUCCESS;
+}
+
+gfx_error gfx_sprite_set_y(gfx_context* ctx, uint8_t sprite_idx, uint16_t y)
+{
+    if (sprite_idx >= GFX_SPRITES_COUNT || ctx == NULL) {
+        return GFX_INVALID_ARG;
+    }
+
+    /* The sprite VRAM is write-only */
+    gfx_sprite* wo_sprites = (gfx_sprite*) VID_MEM_SPRITE_ADDR;
+    gfx_sprite* destination = &wo_sprites[sprite_idx];
+    gfx_map_vram();
+    destination->y = y;
+    gfx_demap_vram(ctx->backup_page);
+
+    return GFX_SUCCESS;
+}
+
+gfx_error gfx_sprite_set_tile(gfx_context* ctx, uint8_t sprite_idx, uint8_t tile)
+{
+    if (sprite_idx >= GFX_SPRITES_COUNT || ctx == NULL) {
+        return GFX_INVALID_ARG;
+    }
+
+    /* The sprite VRAM is write-only */
+    gfx_sprite* wo_sprites = (gfx_sprite*) VID_MEM_SPRITE_ADDR;
+    gfx_sprite* destination = &wo_sprites[sprite_idx];
+    gfx_map_vram();
+    destination->tile = tile;
+    gfx_demap_vram(ctx->backup_page);
+
+    return GFX_SUCCESS;
+}
+
+gfx_error gfx_sprite_set_flags(gfx_context* ctx, uint8_t sprite_idx, gfx_sprite_flags flags)
+{
+    if (sprite_idx >= GFX_SPRITES_COUNT || ctx == NULL) {
+        return GFX_INVALID_ARG;
+    }
+
+    /* The sprite VRAM is write-only */
+    gfx_sprite* wo_sprites = (gfx_sprite*) VID_MEM_SPRITE_ADDR;
+    gfx_sprite* destination = &wo_sprites[sprite_idx];
+    gfx_map_vram();
+    destination->flags = flags;
+    gfx_demap_vram(ctx->backup_page);
+
+    return GFX_SUCCESS;
+}
