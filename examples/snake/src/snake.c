@@ -30,15 +30,14 @@ static uint8_t check_collision(void);
 static void place_fruit(Point* point);
 static void end_game(void);
 static uint8_t position_in_snake(uint8_t from, uint8_t x, uint8_t y);
-static void print_string(const char* str, uint8_t x, uint8_t y);
 static void nprint_string(const char* str, uint8_t len, uint8_t x, uint8_t y);
-static void increment_score(uint8_t* score, char* output);
 static void update_stat(void);
+void play_title(void);
 
-Snake snake;
-Point fruit;
+static Snake snake;
+static Point fruit;
+static int controller_mode;
 gfx_context vctx;
-int controller_mode;
 
 /**
  * @brief Palette for the graphics tiles including the snake, the apple and the background
@@ -58,7 +57,7 @@ const uint8_t letters_palette[] = {
   0x00, 0x00, 0x83, 0xa8, 0xcb, 0xf1, 0xc7, 0xfc, 0x52, 0xff, 0xff, 0xff
 };
 
-uint8_t main(int argc, char** argv) {
+int main(int argc, char** argv) {
     if (argc == 1){
         char* param = strtok(argv[0], " ");
         if (param && (strcmp(param, "-c") == 0)) {
@@ -71,7 +70,17 @@ uint8_t main(int argc, char** argv) {
 }
 
 static void play(void) {
+    static uint8_t showed = 0;
     init_game();
+
+    /* Small workaround to get the title to play only once, this should be properly
+     * done by moving this to the caller, but it would require loading the tiles first,
+     * which is done in `init_game` currently...  */
+    if (!showed) {
+        play_title();
+        showed = 1;
+    }
+
     update_stat();
 
     uint8_t state = 0;
@@ -122,11 +131,6 @@ static void end_game(void) {
             msleep(4);
         }
     }
-}
-
-static void print_string(const char* str, uint8_t x, uint8_t y)
-{
-    gfx_tilemap_load(&vctx, str, strlen(str), 1, x, y);
 }
 
 static void nprint_string(const char* str, uint8_t len, uint8_t x, uint8_t y)
@@ -446,43 +450,6 @@ static uint8_t position_in_snake(uint8_t from, uint8_t x, uint8_t y) {
             return 1;
     }
     return 0;
-}
-
-
-static void increment_score(uint8_t* score, char* output)
-{
-    (void) score;
-    (void) output;
-__asm
-    ld a, (hl)
-    inc a
-    daa
-    ld (hl), a
-    inc hl
-    ld b, a
-    ld a, (hl)
-    adc #0
-    daa
-    ld (hl), a
-
-    and #0xf
-    add #'0'
-    ld (de), a
-    inc de
-    ld a, b
-    rlca
-    rlca
-    rlca
-    rlca
-    and #0xf
-    add #'0'
-    ld (de), a
-    inc de
-    ld a, b
-    and #0xf
-    add #'0'
-    ld (de), a
-__endasm;
 }
 
 
