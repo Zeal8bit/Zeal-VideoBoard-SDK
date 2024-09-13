@@ -14,19 +14,18 @@ parser.add_argument("-b", "--bpp", help="Bits Per Pixel", type=int, default=8, c
 parser.add_argument("-c", "--compressed", help="Decompress RLE", action="store_true")
 parser.add_argument("-s", "--show", help="Open in Viewer", action="store_true")
 
-tiles = []
 tile_width = 16
 tile_height = 16
-tiles_per_sheet = 16
+tiles_per_row = 16
 
 def get_tilesheet_size(tiles):
   width = 1
   height = 1
   count = len(tiles)
   # max 16 tiles across
-  if count > tiles_per_sheet:
-    width = tiles_per_sheet
-    height = math.ceil(len(tiles) / tiles_per_sheet)
+  if count > tiles_per_row:
+    width = tiles_per_row
+    height = math.ceil(len(tiles) / tiles_per_row)
   else:
     width = count
     height = 1
