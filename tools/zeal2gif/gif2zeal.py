@@ -41,9 +41,9 @@ def getPalette(gif):
     g = palette[x+1]
     b = palette[x+2]
     color = reduce(lambda acc, x: (acc << 8) + x, [r,g,b])
-    print("rgb   ", str(r).rjust(3), str(g).rjust(3), str(b).rjust(3), "#{:06x}".format(color), end=" | ")
+    # print("rgb   ", str(r).rjust(3), str(g).rjust(3), str(b).rjust(3), "#{:06x}".format(color), end=" | ")
     color = RGBtoRGB565(r,g,b)
-    print("rgb565", "#{:06x}".format(color), str(color).rjust(5))
+    # print("rgb565", "#{:06x}".format(color), str(color).rjust(5))
 
     lo = color & 0xFF
     hi = (color >> 8) & 0xFF
@@ -57,13 +57,13 @@ def getPalette(gif):
 def convert(args):
   gif = Image.open(args.input)
   palette = getPalette(gif)
-  print("palette", palette)
+  # print("palette", palette)
 
   tiles = []
   tiles_per_row = int(gif.width / tile_width)
   rows = int(gif.height / tile_height)
 
-  print("tiles", tiles_per_row, rows, tiles_per_row * rows)
+  print("columns", tiles_per_row, "rows", rows, "tiles", tiles_per_row * rows)
 
   for x in range(0, tiles_per_row):
     for y in range(0, rows):
@@ -90,8 +90,8 @@ def main():
   if paletteFileName == None:
     paletteFileName = Path(args.input).with_suffix(".ztp")
 
-  print("tileset", tilesetFileName, tileset)
-  print("palette", paletteFileName, palette)
+  print("tileset", tilesetFileName) #, tileset)
+  print("palette", paletteFileName) #, palette)
 
   # tilesetFile = bytearray(tileset)
   # paletteFile = bytearray(palette)

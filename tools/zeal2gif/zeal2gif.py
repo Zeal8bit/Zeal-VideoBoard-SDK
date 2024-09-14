@@ -30,7 +30,7 @@ def get_tilesheet_size(tiles):
     width = count
     height = 1
 
-  print("width", width, "height", height)
+  # print("width", width, "height", height)
   return (width * tile_width,height*tile_height)
 
 def RGB565toRGB(rgb565, palette):
@@ -119,7 +119,7 @@ def convert(args):
   tile = f.read(tilesize_bpp)
 
   while tile:
-    print("tile len", len(tile), tilesize_bpp)
+    # print("tile len", len(tile), tilesize_bpp)
     if len(tile) < tilesize_bpp:
       break
 
@@ -127,7 +127,7 @@ def convert(args):
     for pixels in getSpritePixels(args.bpp, tile, palette):
       images.append(makeSprite(pixels))
 
-    print("images", len(images))
+    # print("images", len(images))
     for image in images:
       tiles.append(image)
       image_count += 1
@@ -141,16 +141,15 @@ def convert(args):
 
   sprites_x = int(tilesheet_size[0]/tile_width)
   sprites_y = int(tilesheet_size[1]/tile_height)
-  print("sprites_x", sprites_x, "sprites_y", sprites_y, "tiles", len(tiles))
   for y in range(0, sprites_y):
     for x in range(0,sprites_x):
       index = (y*sprites_x) + x
       if 0 <= index < len(tiles):
-        print("sprite index", index)
+        # print("sprite index", index)
         tile = tiles[index]
         spritesheet.paste(tile, (x * tile_width,y*tile_height))
 
-  print("sprite count", image_count)
+  print("columns", sprites_x, "rows", sprites_y, "tiles", image_count)
   return spritesheet
 
 def main():
