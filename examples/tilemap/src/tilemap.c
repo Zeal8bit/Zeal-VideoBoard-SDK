@@ -30,12 +30,13 @@ gfx_sprite player;
 int main(void) {
     init();
 
-    uint16_t frames = 0;
+    uint8_t frames = 0;
     while (1) {
         gfx_wait_vblank(&vctx);
         frames++;
-        if(frames % 6 == 0) {
+        if(frames == 12) {
             draw();
+            frames = 0;
         }
         gfx_wait_end_vblank(&vctx);
     }
