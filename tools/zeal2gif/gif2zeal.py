@@ -65,8 +65,8 @@ def convert(args):
 
   print("columns", tiles_per_row, "rows", rows, "tiles", tiles_per_row * rows)
 
-  for x in range(0, tiles_per_row):
-    for y in range(0, rows):
+  for y in range(0, rows):
+    for x in range(0, tiles_per_row):
       # print("tile", x, y)
       ox = (x * tile_width)
       oy = (y * tile_height)
@@ -101,10 +101,6 @@ def main():
 
   with open(paletteFileName, "wb") as file:
     file.write(bytearray(palette))
-
-  # output.save(args.input, "GIF")
-  # if(args.show):
-  #   output.show()
 
 if __name__ == "__main__":
   main()
