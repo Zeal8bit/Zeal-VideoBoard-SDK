@@ -211,8 +211,8 @@ gfx_error gfx_tileset_load(gfx_context* ctx, void* tileset, uint16_t size, const
 
     } else {
         /* Calculate the number of 16KB pages we will write to VRAM */
-        uint8_t  page = from / 16*1024;
-        uint16_t from_byte = from % 16*1024;
+        uint8_t  page = from / (16*1024);
+        uint16_t from_byte = from % (16*1024);
         uint16_t remaining = size;
         while (remaining) {
             /* Maximum number of bytes that can be copied in the current page */
