@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import math
+import io
 from PIL import Image
 import argparse
 from pathlib import Path
@@ -100,11 +101,37 @@ def getSpritePixels(bpp, tile, palette):
 
   return sprites
 
+def decompress(data):
+  ret = []
+  length = 0
+  value = None
+  i = 0
+  len_of_data = len(data) - 1
+  while i < len_of_data:
+    length = data[i]
+    i += 1 # every other byte
+    if length >= 0x80:
+      length = (length - 0x80) + 1
+      value = data[i].to_bytes(1,'big')
+      ret += value * length
+      i += 1
+    else:
+      length = length + 1
+      ret += data[i:i+length]
+      i += length
+
+  return bytes(ret)
 
 def convert(args):
   palette = getPalette(args.palette)
 
-  f = open(args.tileset, mode="rb")
+  data = None
+  with open(args.tileset, mode="rb") as f:
+    data = f.read()
+    if(args.compressed):
+      data = decompress(data)
+    data = io.BytesIO(data)
+
   tiles = []
   image_count = 0
 
@@ -116,7 +143,8 @@ def convert(args):
   else:
     tilesize_bpp = tile_width * tile_height
 
-  tile = f.read(tilesize_bpp)
+  # tile = f.read(tilesize_bpp)
+  tile = data.read(tilesize_bpp)
 
   while tile:
     # print("tile len", len(tile), tilesize_bpp)
@@ -132,9 +160,7 @@ def convert(args):
       tiles.append(image)
       image_count += 1
 
-    tile = f.read(tilesize_bpp)
-
-  f.close()
+    tile = data.read(tilesize_bpp)
 
   tilesheet_size = get_tilesheet_size(tiles)
   spritesheet = Image.new(mode="RGB", size=tilesheet_size)

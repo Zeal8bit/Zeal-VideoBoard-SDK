@@ -19,7 +19,7 @@ def convert(args):
     return None
 
   # tiled indexes are 1 based, so we subtract 1 to make it 0 based
-  tiles = [int(i) - 1 for i in data.text.replace("\n", "").split(",")]
+  tiles = [255 if int(i) < 1 else int(i) - 1 for i in data.text.replace("\n", "").split(",")]
   return bytes(tiles)
 
 def main():
