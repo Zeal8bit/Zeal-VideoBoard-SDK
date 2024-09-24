@@ -12,7 +12,7 @@ parser.add_argument("-i", "--input", help="Input GIF Filename", required=True)
 parser.add_argument("-t","--tileset", help="Zeal Tileset (ZTS)")
 parser.add_argument("-p", "--palette", help="Zeal Palette (ZTP)")
 parser.add_argument("-b", "--bpp", help="Bits Per Pixel", type=int, default=8, choices=[1,4,8])
-parser.add_argument("-c", "--compressed", help="Compress with RLE", action="store_true")
+parser.add_argument("-c", "--compress", help="Compress with RLE", action="store_true")
 
 tile_width = 16
 tile_height = 16
@@ -53,6 +53,42 @@ def getPalette(gif):
     # print("[{}]".format(", ".join(hex(x) for x in palette)))
   return result
 
+def _compress_same_seq(data):
+  count = 0
+  i = 0
+  while (i < len(data)) and (data[0] == data[i] and count < 128):
+    count += 1
+    i += 1
+
+  return count
+
+def _compress_diff_seq(data):
+  count = 0
+  i = 1
+  while (i < len(data)) and (data[i-1] != data[i] and count < 128):
+    count += 1
+    i += 1
+
+  return count
+
+def compress(tile: list):
+  ret = []
+  i = 0
+  while i < 256: # TILE_SIZE # 16 * 16
+    same_count = _compress_same_seq(tile[i:])
+    diff_count = _compress_diff_seq(tile[i:])
+
+    if diff_count > 0:
+      ret.append(diff_count - 1)
+      for j in range(i, i+diff_count):
+        ret.append(tile[j])
+      i += diff_count
+    else:
+      ret.append((same_count - 1) + 0x80)
+      ret.append(tile[i])
+      i += same_count
+
+  return ret
 
 def convert(args):
   gif = Image.open(args.input)
@@ -73,6 +109,8 @@ def convert(args):
       tile = gif.crop((ox, oy, ox + tile_width, oy + tile_height))
       # print("crop", ox, oy, ox + tile_width, oy + tile_height)
       pixels = list(tile.getdata())
+      if(args.compress):
+        pixels = compress(pixels)
       tiles = tiles + pixels
       # print("pixels", pixels)
 
