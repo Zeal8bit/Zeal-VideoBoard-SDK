@@ -49,6 +49,10 @@ bin/
 *.su
 *.idb
 *.pdb
+lib/*.rel
+lib/*.sym
+lib/*.lst
+lib/*.asm
 
 # Kernel Module Compile Results
 *.mod*

@@ -16,9 +16,10 @@ typedef uint8_t gfx_error;
 #define GFX_INVALID_ARG 2
 
 
-#define TILESET_COMP_NONE    0
-#define TILESET_COMP_1BIT    1
-#define TILESET_COMP_4BIT    2
+#define TILESET_COMP_NONE   0
+#define TILESET_COMP_1BIT   1
+#define TILESET_COMP_4BIT   2
+#define TILESET_COMP_RLE    16
 
 
 /**
