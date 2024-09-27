@@ -13,6 +13,7 @@ parser.add_argument("-t","--tileset", help="Zeal Tileset (ZTS)")
 parser.add_argument("-p", "--palette", help="Zeal Palette (ZTP)")
 parser.add_argument("-b", "--bpp", help="Bits Per Pixel", type=int, default=8, choices=[1,4,8])
 parser.add_argument("-c", "--compress", help="Compress with RLE", action="store_true")
+parser.add_argument("-s", "--strip", help="Strip N tiles off the end", type=int, default=0)
 
 tile_width = 16
 tile_height = 16
@@ -74,7 +75,7 @@ def _compress_diff_seq(data):
 def compress(tile: list):
   ret = []
   i = 0
-  while i < 256: # TILE_SIZE # 16 * 16
+  while i < len(tile): # TILE_SIZE # 16 * 16
     same_count = _compress_same_seq(tile[i:])
     diff_count = _compress_diff_seq(tile[i:])
 
@@ -99,21 +100,31 @@ def convert(args):
   tiles_per_row = int(gif.width / tile_width)
   rows = int(gif.height / tile_height)
 
-  print("columns", tiles_per_row, "rows", rows, "tiles", tiles_per_row * rows)
-
   for y in range(0, rows):
     for x in range(0, tiles_per_row):
+      if args.strip > 0 and y == rows - 1 and x >= tiles_per_row - args.strip:
+        continue
       # print("tile", x, y)
       ox = (x * tile_width)
       oy = (y * tile_height)
       tile = gif.crop((ox, oy, ox + tile_width, oy + tile_height))
-      # print("crop", ox, oy, ox + tile_width, oy + tile_height)
       pixels = list(tile.getdata())
+
+      if(args.bpp == 4):
+        op = pixels.copy()
+        pixels = []
+        for idx in range(0, len(op), 2):
+          p1 = op[idx]
+          p2 = op[idx+1]
+          p1 <<= 4
+          pixels.append(p1 + p2)
+
+
       if(args.compress):
         pixels = compress(pixels)
-      tiles = tiles + pixels
-      # print("pixels", pixels)
+      tiles += pixels
 
+  print("columns", tiles_per_row, "rows", rows, "tiles", (tiles_per_row * rows) - args.strip)
   return (tiles, palette)
 
 def main():
