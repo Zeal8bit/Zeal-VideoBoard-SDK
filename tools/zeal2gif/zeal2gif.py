@@ -31,37 +31,42 @@ def get_tilesheet_size(tiles):
     width = count
     height = 1
 
-  # print("width", width, "height", height)
   return (width * tile_width,height*tile_height)
 
-def RGB565toRGB(rgb565, palette):
-  # print("palette", rgb565)
-  lo = palette[rgb565 * 2]
-  hi = palette[rgb565 * 2 + 1]
-  # print("  color", hi, lo)
-  return (hi,lo)
+def RGB565toRGB(value):
+  r = int((((value >> 11) & 0x1F) * 255 + 15) / 31)
+  g = int((((value >> 5) &0x3F) * 255 + 31) / 63)
+  b = int((((value & 0x1F)) * 255 + 15) / 31)
+  return [r,g,b]
 
 def getPalette(paletteFile):
   pf = open(paletteFile, "rb")
   pb = pf.read()
   palette = []
-  for b in pb:
-    palette.append(b)
+  for i in range(0, len(pb), 2):
+    lo = pb[i]
+    hi = pb[i + 1]
+    value = (hi << 8) + lo
+    palette += RGB565toRGB(value)
+
+  # print("PALETTE: [{}]".format(", ".join(hex(x) for x in palette)))
   return palette
 
-def makeSprite(pixels):
-  # print("pixels", pixels)
-  image = Image.frombytes(
-    "RGB", # mode
-    (tile_width,tile_height), # size
-    pixels, # data
-    "raw", # decoder name
-    "BGR;16",
-    0, 1
-    )
+def makeSprite(pixels, palette: list):
+  image = Image.new(
+    mode="P", # mode
+    size=(tile_width, tile_height), # size
+  )
+  image.putpalette(palette, rawmode="RGB")
+  for y in range(0, tile_height):
+    for x in range(0, tile_width):
+      image.putpixel(
+        (x,y), # xy
+        pixels[(y * tile_height) + x] # value
+      )
   return image
 
-def getSpritePixels(bpp, tile, palette):
+def getSpritePixels(bpp, tile):
   sprites = []
 
   if bpp == 1:
@@ -70,33 +75,20 @@ def getSpritePixels(bpp, tile, palette):
       pixels = bytearray()
       for b in range(8):
         p = (b >> 1) & 1
-        (hi,lo) = RGB565toRGB(p, palette)
-        pixels.append(lo)
-        pixels.append(hi)
+        pixels.append(p)
       sprites.append(pixels)
 
   elif bpp <= 4:
     # one nibble per pixel
     pixels = bytearray()
     for pixel in tile:
-      p1,p2 = pixel >> 4, pixel & 0x0F
-
-      (hi,lo) = RGB565toRGB(p1, palette)
-      pixels.append(lo)
-      pixels.append(hi)
-
-      (hi,lo) = RGB565toRGB(p2, palette)
-      pixels.append(lo)
-      pixels.append(hi)
+      p1,p2 = (pixel >> 4) & 0x0F, pixel & 0x0F
+      pixels.append(p1)
+      pixels.append(p2)
     sprites.append(pixels)
 
   else:
-    # one byte per pixel
-    pixels = bytearray()
-    for pixel in tile:
-      (hi,lo) = RGB565toRGB(pixel, palette)
-      pixels.append(lo)
-      pixels.append(hi)
+    pixels = bytearray(tile)
     sprites.append(pixels)
 
   return sprites
@@ -137,25 +129,23 @@ def convert(args):
 
   tilesize_bpp = 0
   if args.bpp == 1:
-    tilesize_bpp = 32
+    tilesize_bpp = tile_width + tile_height
   elif args.bpp <= 4:
-    tilesize_bpp = 128
+    tilesize_bpp = (tile_width * tile_height) / 2
   else:
     tilesize_bpp = tile_width * tile_height
+  tilesize_bpp = int(tilesize_bpp)
 
-  # tile = f.read(tilesize_bpp)
   tile = data.read(tilesize_bpp)
 
   while tile:
-    # print("tile len", len(tile), tilesize_bpp)
     if len(tile) < tilesize_bpp:
       break
 
     images = []
-    for pixels in getSpritePixels(args.bpp, tile, palette):
-      images.append(makeSprite(pixels))
+    for pixels in getSpritePixels(args.bpp, tile):
+      images.append(makeSprite(pixels, palette))
 
-    # print("images", len(images))
     for image in images:
       tiles.append(image)
       image_count += 1
@@ -163,7 +153,8 @@ def convert(args):
     tile = data.read(tilesize_bpp)
 
   tilesheet_size = get_tilesheet_size(tiles)
-  spritesheet = Image.new(mode="RGB", size=tilesheet_size)
+  spritesheet = Image.new(mode="P", size=tilesheet_size)
+  spritesheet.putpalette(palette, rawmode="RGB")
 
   sprites_x = int(tilesheet_size[0]/tile_width)
   sprites_y = int(tilesheet_size[1]/tile_height)
@@ -187,7 +178,11 @@ def main():
   if outputFile == None:
     outputFile = Path(args.tileset).with_suffix(".gif")
   print("output", outputFile)
-  output.save(outputFile, "GIF")
+  output.save(
+    outputFile,
+    format="GIF",
+    optimize=False
+  )
   if(args.show):
     output.show()
 
