@@ -354,7 +354,7 @@ gfx_error gfx_wait_vblank(gfx_context* ctx)
 gfx_error gfx_wait_end_vblank(gfx_context* ctx)
 {
     (void) ctx;
-    while((vid_ctrl_status & 2) == 1) {
+    while(vid_ctrl_status & 2) {
     }
     return GFX_SUCCESS;
 }
@@ -394,7 +394,7 @@ gfx_error gfx_sprite_render_array(gfx_context* ctx, uint8_t from_idx, const gfx_
 
     /* The sprite VRAM is write-only */
     gfx_sprite* wo_sprites = (gfx_sprite*) VID_MEM_SPRITE_ADDR;
-    
+
     destination = &wo_sprites[from_idx];
     src = sprites;
 
