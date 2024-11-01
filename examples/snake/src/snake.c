@@ -14,14 +14,16 @@
 #include <zos_video.h>
 #include <zvb_gfx.h>
 #include "controller.h"
+#include "title.h"
 #include "snake.h"
 
-#define MINIMUM_WAIT  60
-#define MAX_SPEED     20
+#define MINIMUM_WAIT  20
+#define MAX_SPEED     10
 #define BOOST_ON      8
 
 static void play(void);
-static void init_game(void);
+static void init(void);
+static void reset(void);
 static void wait(void);
 static void draw(void);
 static void input(void);
@@ -32,7 +34,7 @@ static void end_game(void);
 static uint8_t position_in_snake(uint8_t from, uint8_t x, uint8_t y);
 static void nprint_string(const char* str, uint8_t len, uint8_t x, uint8_t y);
 static void update_stat(void);
-void play_title(void);
+// void play_title(void);
 
 static Snake snake;
 static Point fruit;
@@ -65,21 +67,17 @@ int main(int argc, char** argv) {
             controller_init();
         }
     }
+    init();
+    title_play();
+    title_hide();
+    msleep(100);
+
     play();
     return 0;
 }
 
 static void play(void) {
-    static uint8_t showed = 0;
-    init_game();
-
-    /* Small workaround to get the title to play only once, this should be properly
-     * done by moving this to the caller, but it would require loading the tiles first,
-     * which is done in `init_game` currently...  */
-    if (!showed) {
-        play_title();
-        showed = 1;
-    }
+    reset();
 
     update_stat();
 
@@ -87,9 +85,9 @@ static void play(void) {
     // initialize frame counter for FPS
     uint8_t frames = 0;
     while (1) {
+        gfx_wait_vblank(&vctx);
         input();
         /* Wait for v-blank */
-        gfx_wait_vblank(&vctx);
         frames++;
         if(frames >= MINIMUM_WAIT - snake.speed) {
             if(update() || check_collision())
@@ -171,7 +169,7 @@ static void update_stat(void) {
     nprint_string(text, strlen(text), 10, HEIGHT);
 }
 
-static void init_game(void) {
+static void init(void) {
     /* Initialize the keyboard by setting it to raw and non-blocking */
     void* arg = (void*) (KB_READ_NON_BLOCK | KB_MODE_RAW);
     ioctl(DEV_STDIN, KB_CMD_SET_MODE, arg);
@@ -224,6 +222,10 @@ static void init_game(void) {
     /* Fill the layer0 with the background pattern */
     draw_background();
 
+    gfx_enable_screen(1);
+}
+
+static void reset(void) {
     // Initialize snake
     snake.length = 2;
     snake.body[0].x = WIDTH / 2;
@@ -237,8 +239,6 @@ static void init_game(void) {
     snake.apples_to_boost = BOOST_ON;
 
     place_fruit(&fruit);
-
-    gfx_enable_screen(1);
 }
 
 static uint8_t get_direction(uint8_t former_x, uint8_t former_y, uint8_t x, uint8_t y)
@@ -484,7 +484,7 @@ __endasm;
 /**
  * @brief Workaround to include a binary file in the program
  */
-void _snake_tileset() {
+void _snake_tileset(void) {
     __asm
 __snake_tileset_start:
     .incbin "assets/snake_tileset.zts"
@@ -492,7 +492,7 @@ __snake_tileset_end:
     __endasm;
 }
 
-void _letters_tileset() {
+void _letters_tileset(void) {
     __asm
 __letters_tileset_start:
     .incbin "assets/letters.zts"
@@ -500,7 +500,7 @@ __letters_tileset_end:
     __endasm;
 }
 
-void _numbers_tileset() {
+void _numbers_tileset(void) {
     __asm
 __numbers_tileset_start:
     .incbin "assets/numbers.zts"
