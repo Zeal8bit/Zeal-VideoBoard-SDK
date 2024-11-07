@@ -23,6 +23,12 @@ typedef uint8_t gfx_error;
 
 
 /**
+ * @brief Helper to convert an RGB888 color into an RGB565. The result is an unsigned 16-bit value.
+ */
+#define RGB888_TO_RGB565(r, g, b)  ((((r) >> 3) << 11) | (((g) >> 2) << 5) | ((b) >> 3))
+
+
+/**
  * @brief Graphics context initialize by the init function
  */
 typedef struct {
