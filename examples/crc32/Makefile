@@ -20,8 +20,16 @@ BIN=crc32.bin
 # ZVB_CFLAGS=-I$(ZVB_SDK_PATH)/include/
 
 # Specify additional flags to pass to the linker. This will be concatenated to `ZOS_LDFLAGS`.
-# For this example, we only need the CRC library.
-ZVB_LDFLAGS=-k $(ZVB_SDK_PATH)/lib/ -l zvb_crc
+# ZVB_LDFLAGS=-k $(ZVB_SDK_PATH)/lib/ -l zvb_gfx
+
+# Disable Graphics Library
+ENABLE_GFX=0
+
+# Enable the sound library
+# ENABLE_SOUND=1
+
+# Enable the CRC32 library
+ENABLE_CRC32=1
 
 
 ##
