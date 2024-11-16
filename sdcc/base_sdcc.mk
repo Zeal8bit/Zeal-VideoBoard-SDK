@@ -26,9 +26,9 @@ ENABLE_CRC32 ?= 0
 # Make sure the whole program is relocated at 0x4000 as request by Zeal 8-bit OS.
 ZVB_LDFLAGS ?= -k $(ZVB_SDK_PATH)/lib/
 
-ifeq ($(ENABLE_GFX)), 1)
- ZVB_FLAGS += -l zvb_gfx
- endif
+ifeq ($(ENABLE_GFX), 1)
+ZVB_LDFLAGS += -l zvb_gfx
+endif
 
 ifeq ($(ENABLE_SOUND), 1)
 ZVB_LDFLAGS += -l zvb_sound
