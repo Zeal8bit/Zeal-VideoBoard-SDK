@@ -99,11 +99,16 @@ def convert(args):
   tiles = []
   tiles_per_row = int(gif.width / tile_width)
   rows = int(gif.height / tile_height)
+  total_tiles = tiles_per_row * rows
+  if args.strip > 0:
+    total_tiles -= args.strip
+
 
   for y in range(0, rows):
     for x in range(0, tiles_per_row):
-      if args.strip > 0 and y == rows - 1 and x >= tiles_per_row - args.strip:
-        continue
+      index = (y * tiles_per_row) + x
+      if index >= total_tiles:
+        continue # reached the end
       # print("tile", x, y)
       ox = (x * tile_width)
       oy = (y * tile_height)
