@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include "zvb_hardware.h"
 
-#define SOUND_FREQ_TO_DIV(FREQ)     (44091*(FREQ) / 65536)
+#define SOUND_FREQ_TO_DIV(FREQ)     (65536*(FREQ) / 44091)
 #define SOUND_SAMPLE_TABLE_SIZE     256
 
 typedef enum {
