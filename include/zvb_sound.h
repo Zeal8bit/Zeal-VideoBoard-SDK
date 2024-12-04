@@ -49,6 +49,7 @@ typedef enum {
     SAMPLE_SINT16,  // Signed 16-bit samples
 } sample_int;
 
+
 /**
  * @brief Configuration for the sample table voice
  */
@@ -57,13 +58,6 @@ typedef enum {
     uint8_t divider;    // Sample rate divider
  } sound_samples_conf_t;
 
-/**
- * @brief Function version of the frequency to divider converter
- */
-static inline uint16_t zvb_sound_freq_to_div(uint16_t frequency)
-{
-    return (44091 * frequency) / 65536;
-}
 
 /**
  * @brief Initialize the sound peripheral.
