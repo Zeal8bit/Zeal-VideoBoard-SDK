@@ -40,40 +40,78 @@ GimpPlugInInfo PLUG_IN_INFO = {
 };
 
 
-static gboolean compress_dialog(void)
+/**
+ * @brief Parameter for the settings dialog
+ */
+typedef struct {
+    gboolean compress_colors;
+    gboolean merge_tileset;
+    gboolean generate_tilemap;
+} settings_t;
+
+
+settings_t g_settings;
+
+/**
+ * @brief Show the exporter settings dialog, which lets the user choose optimizations.
+ * 
+ * @param reduce_colors true to enable the "2-bit or 4-bit mode" compression checkbox, false to disable it.
+ * @param gen_tilemap true to enable the "Generate tilemap" checkbox, false to disable it.
+ * 
+ * @return TRUE if the `OK` button was pressed, else the `Close` button was pressed.
+ */
+static gboolean settings_dialog(gboolean reduce_colors, gboolean gen_tilemap,
+                                settings_t* settings)
 {
     GtkWidget *dialog;
-    GtkWidget *label;
-    GtkWidget *checkbox;
+    GtkWidget *check_comp;
+    GtkWidget *check_tilemap;
+    GtkWidget *check_tileset;
 
+    /* Create a new dialog, which will look like a popup window */
     gimp_ui_init("ZealTileset Exporter", FALSE);
-
-    // Create a new dialog
     dialog = gimp_dialog_new("Zeal Exporter", "zeal_exporter",
                              NULL, GTK_DIALOG_MODAL, NULL, NULL,
                             GTK_STOCK_OK,     GTK_RESPONSE_OK,
                             NULL);
 
-    // Create and add a checkbox to the dialog
-    checkbox = gtk_check_button_new_with_label("Compress tileset colors to 2-bit or 4-bit mode");
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(checkbox), TRUE); // Set initial state
-    gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), checkbox, FALSE, FALSE, 0);
+    /* Create a checkbox for the compress color and place it in the dialog */
+    check_comp = gtk_check_button_new_with_label("Compress tileset colors to 2-bit or 4-bit mode");
+    /* Set initial state of the checkbox */
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check_comp), reduce_colors);
+    if (!reduce_colors) {
+        gtk_widget_set_sensitive(check_comp, FALSE);
+    }
+    gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), check_comp, FALSE, FALSE, 0);
 
-    // Show all the widgets in the dialog
+    /* Create a checkbox for merging the tiles in the tileset */
+    check_tileset = gtk_check_button_new_with_label("Merge identical tiles in the tileset");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check_tileset), TRUE);
+    gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), check_tileset, FALSE, FALSE, 0);
+
+    /* Create a checkbox for generating a tilemap */
+    check_tilemap = gtk_check_button_new_with_label("Generate a tilemap (.ztm)");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check_tilemap), TRUE);
+    if (gen_tilemap) {
+        gtk_widget_set_sensitive(check_tilemap, FALSE);
+    }
+    gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), check_tilemap, FALSE, FALSE, 0);
+
+    /* Show all the widgets in the dialog and run it! */
     gtk_widget_show_all(dialog);
-
-    // Run the dialog
     gint response = gimp_dialog_run(GIMP_DIALOG(dialog));
-
-    // Handle the response if needed
-    assert(response == GTK_RESPONSE_OK);
-
-    gboolean checked = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(checkbox));
-
-    // Destroy the dialog
+    /* Check the repsonse, make sure the OK button was pressed */
+    if (response != GTK_RESPONSE_OK) {
+        gtk_widget_destroy(dialog);
+        return FALSE;
+    }
+    /* Parse the state of the checkboxes upon return */
+    settings->compress_colors  = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check_comp));
+    settings->merge_tileset    = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check_tileset));
+    settings->generate_tilemap = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check_tilemap));
+    
     gtk_widget_destroy(dialog);
-
-    return checked;
+    return TRUE;
 }
 
 /* ----------------------------- PALETTE RELATED ---------------------------- */
@@ -345,10 +383,10 @@ static int tileset_add(zeal_tileset_t* set, zeal_tile_t tile)
     /* Previous will be used to insert the new tile in the set */
     zeal_tileset_node_t* previous = NULL;
 
-    /* Browse the list */
+    /* Browse the list only if we have to prevent duplicates */
     int i = 0;
     while(head != NULL) {
-        if (tiles_equal(head->tile, tile)) {
+        if (g_settings.merge_tileset && tiles_equal(head->tile, tile)) {
             /* We found the tile, return the current index */
             return i;
         }
@@ -475,6 +513,7 @@ static void run (
     static char buf_filename[PATH_MAX];
     static GimpParam  values[1];
     GimpPDBStatusType status = GIMP_PDB_SUCCESS;
+    memset(&g_settings, 0, sizeof(g_settings));
     // GimpRunMode       run_mode;
 
     /* Setting mandatory output values */
@@ -485,7 +524,7 @@ static void run (
     values[0].data.d_status = status;
 
     /* We want to flatten the image, so that all the VISIBLE layers are merged into a single one,
-     * but we don't want to modify the existing image, the one the user is working one, so we have to
+     * but we don't want to modify the existing image, the one the user is working on, so we have to
      * clone it */
     const gint32 original_image = param[1].data.d_image;
     gint32 image = gimp_image_duplicate(original_image);
@@ -512,6 +551,9 @@ static void run (
     const gboolean compress_rle = filename[filename_len - 3] == 'c';
     gboolean       compress_colors = FALSE;
 
+    /* Check whether the file to export is explicitely a tilemap */
+    const gboolean force_tilemap = (filename[filename_len - 1] == 'm');
+
     /* Create the palette file, only the last character need to change */
     buf_filename[filename_len - 1] = 'p';
     int colors_number = palette_save(buf_filename, image);
@@ -520,8 +562,9 @@ static void run (
     }
 
     /* If we have 16 or less colors, ask the user if we have to compress (even more) */
-    if (colors_number <= 16) {
-        compress_colors = compress_dialog();
+    if (settings_dialog(colors_number <= 16, force_tilemap, &g_settings) == FALSE) {
+        /* Close button was pressed, abort */
+        goto return_dealloc_image;
     }
 
     /* Create the tileset and initialize it */
@@ -549,14 +592,16 @@ static void run (
     }
 
     /* Compress the tileset if necessary */
-    if (compress_rle || compress_colors) {
-        tileset_compress(&set, colors_number, compress_rle, compress_colors);
+    if (compress_rle || g_settings.compress_colors) {
+        tileset_compress(&set, colors_number, compress_rle, g_settings.compress_colors);
     }
 
-    /* Save the tilemap to a file */
-    buf_filename[filename_len - 1] = 'm';
-    if (!tilemap_save(buf_filename, tilemap, tilemap_size)) {
-        goto return_dealloc;
+    /* Save the tilemap to a file if selected for the export */
+    if (g_settings.generate_tilemap) {
+        buf_filename[filename_len - 1] = 'm';
+        if (!tilemap_save(buf_filename, tilemap, tilemap_size)) {
+            goto return_dealloc;
+        }
     }
 
     /* Save the tileset to a file */
