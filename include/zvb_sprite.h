@@ -7,6 +7,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "zvb_gfx.h"
 #include "zvb_hardware.h"
 
 /**
