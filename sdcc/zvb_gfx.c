@@ -400,6 +400,11 @@ gfx_error gfx_sprite_render_array(gfx_context* ctx, uint8_t from_idx, const gfx_
 
     uint8_t backup_page = ctx->backup_page;
     for (uint8_t i = 0; i < length; i++) {
+        /**
+         * We cannot use a single memcpy for two reasons:
+         * - Two bytes of the structure are padding, so it would be unnecessary bytes copied
+         * - We must not hold the interrupt for too long
+         */
         gfx_map_vram();
         memcpy(destination, src, SPRITE_STRUCT_SIZE);
         gfx_demap_vram(backup_page);
