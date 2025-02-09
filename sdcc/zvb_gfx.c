@@ -131,15 +131,31 @@ gfx_error gfx_palette_load(gfx_context* ctx, void* palette, uint16_t size, uint8
 }
 
 
-static gfx_error gfx_tileset_load_bitmap(gfx_context* ctx, void* tileset, uint16_t size, uint8_t from, uint8_t pal_offset)
+static gfx_error gfx_tileset_load_bitmap(gfx_context* ctx, uint8_t* tileset, uint16_t size, uint16_t from, uint8_t pal_offset)
 {
-    // TODO
-    (void) ctx;
-    (void) tileset;
-    (void) size;
-    (void) from;
-    (void) pal_offset;
-    return GFX_FAILURE;
+    uint8_t  page = from / (16*1024);
+    uint16_t from_byte = from % (16*1024);
+    gfx_map_tileset(page);
+    uint8_t* vram_tileset = (uint8_t*) (VRAM_VIRT_ADDR + from_byte);
+
+    while (size--) {
+        uint8_t byte = *tileset++;
+
+        for (uint8_t i = 0; i < 8; i++) {
+            *vram_tileset++ = (byte & 0x80) ? pal_offset + 1: pal_offset;
+            byte = byte << 1;
+        }
+
+        /* Each we reached the end of the page, start all over again */
+        if ((uintptr_t) vram_tileset & (16*1024) != 0) {
+            gfx_map_tileset(++page);
+            vram_tileset = VRAM_VIRT_ADDR;
+        }
+    }
+
+    gfx_demap_vram(ctx->backup_page);
+
+    return GFX_SUCCESS;
 }
 
 
