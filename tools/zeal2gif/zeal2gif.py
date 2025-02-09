@@ -60,9 +60,13 @@ def makeSprite(pixels, palette: list):
   image.putpalette(palette, rawmode="RGB")
   for y in range(0, tile_height):
     for x in range(0, tile_width):
+      index = (y * tile_height) + x
+      # print("tile height", tile_height, "y", y, "x", x, "index", index, "len", len(pixels))
+      if(index >= len(pixels)):
+        break
       image.putpixel(
         (x,y), # xy
-        pixels[(y * tile_height) + x] # value
+        pixels[index] # value
       )
   return image
 
@@ -71,18 +75,18 @@ def getSpritePixels(bpp, tile):
 
   if bpp == 1:
     # one bit per pixel
-    for pixel in tile:
-      pixels = bytearray()
-      for b in range(8):
-        p = (b >> 1) & 1
+    pixels = bytearray()
+    for byte in tile:
+      for bit in reversed(range(8)):
+        p = ((byte >> bit) & 1)
         pixels.append(p)
-      sprites.append(pixels)
+    sprites.append(pixels)
 
   elif bpp <= 4:
     # one nibble per pixel
     pixels = bytearray()
-    for pixel in tile:
-      p1,p2 = (pixel >> 4) & 0x0F, pixel & 0x0F
+    for byte in tile:
+      p1,p2 = (byte >> 4) & 0x0F, byte & 0x0F
       pixels.append(p1)
       pixels.append(p2)
     sprites.append(pixels)
