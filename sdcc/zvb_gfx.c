@@ -121,6 +121,9 @@ gfx_error gfx_palette_load(gfx_context* ctx, void* palette, uint16_t size, uint8
     if (ctx == NULL || palette == NULL || size == 0 || (from * 2 + size) > 512) {
         return GFX_INVALID_ARG;
     }
+    if (ctx->bpp == 0) {
+        return GFX_NOT_INIT;
+    }
 
     uint16_t* vram_palette = (uint16_t*) (VRAM_VIRT_ADDR + VID_MEM_PALETTE_OFFSET);
 
@@ -256,6 +259,9 @@ gfx_error gfx_tileset_load(gfx_context* ctx, void* tileset, uint16_t size, const
     if (ctx == NULL || tileset == NULL || size == 0) {
         return GFX_INVALID_ARG;
     }
+    if (ctx->bpp == 0) {
+        return GFX_NOT_INIT;
+    }
     /* Count the number of mappings required */
     const uint16_t from = options ? options->from_byte : 0;
     const uint8_t compression = options ? options->compression : 0;
@@ -301,6 +307,9 @@ gfx_error gfx_tileset_add_color_tile(gfx_context* ctx, uint16_t index, uint8_t c
     if (ctx == NULL) {
         return GFX_INVALID_ARG;
     }
+    if (ctx->bpp == 0) {
+        return GFX_NOT_INIT;
+    }
     uint8_t* vram_tileset = (uint8_t*) VRAM_VIRT_ADDR;
     uint8_t page;
     uint16_t size;
@@ -329,6 +338,9 @@ gfx_error gfx_tilemap_load(gfx_context* ctx, void* tiles, uint8_t size, uint8_t 
     if (ctx == NULL || tiles == NULL || size == 0) {
         return GFX_INVALID_ARG;
     }
+    if (ctx->bpp == 0) {
+        return GFX_NOT_INIT;
+    }
 
     uint16_t layer_offset = layer != 0 ? VID_MEM_LAYER1_OFFSET : 0;
     uint16_t position = y * (MAX_COL + 1) + x;
@@ -346,6 +358,9 @@ gfx_error gfx_tilemap_place(gfx_context* ctx, uint8_t tile, uint8_t layer, uint8
 {
     if (ctx == NULL) {
         return GFX_INVALID_ARG;
+    }
+    if (ctx->bpp == 0) {
+        return GFX_NOT_INIT;
     }
 
     const uint16_t layer_offset = (layer == 0) ? 0 : VID_MEM_LAYER1_OFFSET;
@@ -385,6 +400,9 @@ gfx_error gfx_sprite_render(gfx_context* ctx, uint8_t sprite_idx, const gfx_spri
     if (sprite_idx >= GFX_SPRITES_COUNT || ctx == NULL || sprite == NULL) {
         return GFX_INVALID_ARG;
     }
+    if (ctx->bpp == 0) {
+        return GFX_NOT_INIT;
+    }
 
     /* The sprite VRAM is write-only */
     gfx_sprite* wo_sprites = (gfx_sprite*) VID_MEM_SPRITE_ADDR;
@@ -406,6 +424,9 @@ gfx_error gfx_sprite_render_array(gfx_context* ctx, uint8_t from_idx, const gfx_
 
     if (from_idx + length > GFX_SPRITES_COUNT || ctx == NULL || sprites == NULL) {
         return GFX_INVALID_ARG;
+    }
+    if (ctx->bpp == 0) {
+        return GFX_NOT_INIT;
     }
 
     /* The sprite VRAM is write-only */
@@ -436,6 +457,9 @@ gfx_error gfx_sprite_set_x(gfx_context* ctx, uint8_t sprite_idx, uint16_t x)
     if (sprite_idx >= GFX_SPRITES_COUNT || ctx == NULL) {
         return GFX_INVALID_ARG;
     }
+    if (ctx->bpp == 0) {
+        return GFX_NOT_INIT;
+    }
 
     /* The sprite VRAM is write-only */
     gfx_sprite* wo_sprites = (gfx_sprite*) VID_MEM_SPRITE_ADDR;
@@ -451,6 +475,9 @@ gfx_error gfx_sprite_set_y(gfx_context* ctx, uint8_t sprite_idx, uint16_t y)
 {
     if (sprite_idx >= GFX_SPRITES_COUNT || ctx == NULL) {
         return GFX_INVALID_ARG;
+    }
+    if (ctx->bpp == 0) {
+        return GFX_NOT_INIT;
     }
 
     /* The sprite VRAM is write-only */
@@ -468,6 +495,9 @@ gfx_error gfx_sprite_set_tile(gfx_context* ctx, uint8_t sprite_idx, uint8_t tile
     if (sprite_idx >= GFX_SPRITES_COUNT || ctx == NULL) {
         return GFX_INVALID_ARG;
     }
+    if (ctx->bpp == 0) {
+        return GFX_NOT_INIT;
+    }
 
     /* The sprite VRAM is write-only */
     gfx_sprite* wo_sprites = (gfx_sprite*) VID_MEM_SPRITE_ADDR;
@@ -483,6 +513,9 @@ gfx_error gfx_sprite_set_flags(gfx_context* ctx, uint8_t sprite_idx, gfx_sprite_
 {
     if (sprite_idx >= GFX_SPRITES_COUNT || ctx == NULL) {
         return GFX_INVALID_ARG;
+    }
+    if (ctx->bpp == 0) {
+        return GFX_NOT_INIT;
     }
 
     /* The sprite VRAM is write-only */

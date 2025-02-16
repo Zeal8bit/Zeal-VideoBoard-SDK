@@ -14,6 +14,7 @@ typedef uint8_t gfx_error;
 #define GFX_SUCCESS     0
 #define GFX_FAILURE     1
 #define GFX_INVALID_ARG 2
+#define GFX_NOT_INIT    3
 
 
 #define TILESET_COMP_NONE   0
