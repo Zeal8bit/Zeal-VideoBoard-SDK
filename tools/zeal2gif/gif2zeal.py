@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import math
+import os
 from functools import reduce
 from PIL import Image
 import argparse
@@ -11,13 +11,44 @@ parser = argparse.ArgumentParser("gif2zeal")
 parser.add_argument("-i", "--input", help="Input GIF Filename", required=True)
 parser.add_argument("-t", "--tileset", help="Zeal Tileset (ZTS)")
 parser.add_argument("-p", "--palette", help="Zeal Palette (ZTP)")
+parser.add_argument("-o", "--output", help="Output path, can be just a path")
 parser.add_argument("-b", "--bpp", help="Bits Per Pixel", type=int, default=8, choices=[1,4,8])
 parser.add_argument("-z", "--compress", help="Compress with RLE", action="store_true")
 parser.add_argument("-s", "--strip", help="Strip N tiles off the end", type=int, default=0)
 parser.add_argument("-c", "--colors", help="Max Colors in Palette", type=int, default=256)
+parser.add_argument("-v", "--verbose", help="Verbose output", action='store_true')
+parser.add_argument("-d", "--debug", help="Debug output", action='store_true')
 
 tile_width = 16
 tile_height = 16
+
+def create_dir(file_path):
+  if "." in os.path.basename(file_path):
+      directory = os.path.dirname(file_path)
+  else:
+      directory = file_path
+  if directory and not os.path.exists(directory):
+      os.makedirs(directory, exist_ok=True)
+
+def process_paths(input_path, output_path):
+  # Extract input directory and filename
+  input_dir = os.path.dirname(input_path)
+  input_filename = os.path.basename(input_path)
+
+  # Check if output path has an extension (meaning it's a file) or is a directory
+  output_has_extension = "." in os.path.basename(output_path)
+
+  if output_has_extension:
+      output_dir = os.path.dirname(output_path)
+      output_filename = os.path.basename(output_path)
+  else:
+      output_dir = output_path  # Assume it's a directory
+      output_filename = os.path.splitext(input_filename)[0] + ".zts"
+
+  # Construct full output path
+  full_output_path = os.path.join(output_dir, output_filename)
+
+  return output_dir, output_filename, full_output_path
 
 def RGBtoRGB565(r,g,b):
   red = (r >> 3) & 0x1F
@@ -151,7 +182,8 @@ def convert(args):
         pixels = compress(pixels)
       tiles += pixels
 
-  print("columns", tiles_per_row, "rows", rows, "tiles", (tiles_per_row * rows) - args.strip)
+  if args.debug:
+    print("columns", tiles_per_row, "rows", rows, "tiles", (tiles_per_row * rows) - args.strip)
   return (tiles, palette)
 
 def parse_filename_flags(args):
@@ -197,7 +229,8 @@ def parse_filename_flags(args):
     i += 1
 
 
-  print("parser", input, filename, flags, extension)
+  if args.debug:
+    print("parser", input, filename, flags, extension)
   return argparse.Namespace(
     input=input,
     tileset=tileset,
@@ -211,27 +244,35 @@ def parse_filename_flags(args):
 def main():
   args = parser.parse_args()
   args = parse_filename_flags(args)
-  print("args", args)
+  if args.verbose:
+    print("args", args)
 
 
   tileset, palette = convert(args)
 
+  outputDir, outputFilename, outputPath = process_paths(args.input, args.output)
+  if args.debug:
+    print("outputDir", outputDir)
+    print("outputFilename", outputFilename)
+    print("outputPath", outputPath)
+
+  create_dir(outputPath)
+
   tilesetFileName = args.tileset
   if tilesetFileName == None:
-    tilesetFileName = Path(args.input).with_suffix(".zts")
+    tilesetFileName = Path(outputPath).with_suffix(".zts")
   paletteFileName = args.palette
   if paletteFileName == None:
-    paletteFileName = Path(args.input).with_suffix(".ztp")
+    paletteFileName = Path(outputPath).with_suffix(".ztp")
 
-  print("tileset", tilesetFileName) #, tileset)
-  print("palette", paletteFileName) #, palette)
-
-  # tilesetFile = bytearray(tileset)
-  # paletteFile = bytearray(palette)
+  if args.verbose:
+    print("tileset", tilesetFileName) #, tileset)
+    print("palette", paletteFileName) #, palette)
 
   with open(tilesetFileName, "wb") as file:
     file.write(bytearray(tileset))
 
+  create_dir(paletteFileName)
   with open(paletteFileName, "wb") as file:
     file.write(bytearray(palette))
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import math
+import os
 import io
 from PIL import Image
 import argparse
@@ -12,12 +13,22 @@ parser.add_argument("-t","--tileset", help="Zeal Tileset (ZTS)", required=True)
 parser.add_argument("-p", "--palette", help="Zeal Palette (ZTP)", required=True)
 parser.add_argument("-o", "--output", help="Output GIF Filename")
 parser.add_argument("-b", "--bpp", help="Bits Per Pixel", type=int, default=8, choices=[1,4,8])
-parser.add_argument("-c", "--compressed", help="Decompress RLE", action="store_true")
+parser.add_argument("-z", "--compressed", help="Decompress RLE", action="store_true")
 parser.add_argument("-s", "--show", help="Open in Viewer", action="store_true")
+parser.add_argument("-v", "--verbose", help="Verbose output", action='store_true')
+parser.add_argument("-d", "--debug", help="Debug output", action='store_true')
 
 tile_width = 16
 tile_height = 16
 tiles_per_row = 16
+
+def create_dir(file_path):
+  if "." in os.path.basename(file_path):
+      directory = os.path.dirname(file_path)
+  else:
+      directory = file_path
+  if directory and not os.path.exists(directory):
+      os.makedirs(directory, exist_ok=True)
 
 def get_tilesheet_size(tiles):
   width = 1
@@ -170,18 +181,25 @@ def convert(args):
         tile = tiles[index]
         spritesheet.paste(tile, (x * tile_width,y*tile_height))
 
-  print("columns", sprites_x, "rows", sprites_y, "tiles", image_count)
+  if args.debug:
+    print("columns", sprites_x, "rows", sprites_y, "tiles", image_count)
   return spritesheet
 
 def main():
   args = parser.parse_args()
-  print("args", args)
+  if args.verbose:
+    print("args", args)
   output = convert(args)
 
   outputFile = args.output
   if outputFile == None:
     outputFile = Path(args.tileset).with_suffix(".gif")
-  print("output", outputFile)
+
+  create_dir(outputFile)
+
+  if args.verbose:
+    print("output", outputFile)
+
   output.save(
     outputFile,
     format="GIF",
