@@ -24,6 +24,7 @@ parser.add_argument("-i", "--input", help="Input TMX Filename", required=True)
 parser.add_argument("-o", "--output", help="Output path, can be just a path")
 parser.add_argument("-l", "--layer", help="Layer to use", type=int)
 parser.add_argument("-s", "--size", help="Screen Width/Height, for larger world maps", action=DimensionAction, default=None)
+parser.add_argument("-z", "--compress", help="Compress ZTM with RLE", action="store_true")
 parser.add_argument("-v", "--verbose", help="Verbose output", action='store_true')
 parser.add_argument("-d", "--debug", help="Debug output", action='store_true')
 
@@ -57,6 +58,45 @@ def process_paths(input_path, output_path):
   full_output_path = os.path.join(output_dir, output_filename)
 
   return output_dir, output_filename, full_output_path
+
+
+def _compress_same_seq(data):
+  count = 0
+  i = 0
+  while (i < len(data)) and (data[0] == data[i] and count < 128):
+    count += 1
+    i += 1
+
+  return count
+
+def _compress_diff_seq(data):
+  count = 0
+  i = 1
+  while (i < len(data)) and (data[i-1] != data[i] and count < 128):
+    count += 1
+    i += 1
+
+  return count
+
+def compress(tile: list):
+  ret = []
+  i = 0
+  while i < len(tile): # TILE_SIZE # 16 * 16
+    same_count = _compress_same_seq(tile[i:])
+    diff_count = _compress_diff_seq(tile[i:])
+
+    if diff_count > 0:
+      ret.append(diff_count - 1)
+      for j in range(i, i+diff_count):
+        ret.append(tile[j])
+      i += diff_count
+    else:
+      ret.append((same_count - 1) + 0x80)
+      ret.append(tile[i])
+      i += same_count
+
+  return ret
+
 
 def get_layers(layer):
   if layer:
@@ -121,6 +161,8 @@ def convert(args):
   for layer in layers:
     screens = get_screens(args, layer)
     for screen in screens:
+      if args.compress:
+        screen = compress(screen)
       maps.append(bytes(screen))
   return maps
 
@@ -162,7 +204,7 @@ def main():
       tilemapFileName = Path(args.input + str(idx).zfill(4)).with_suffix(".ztm")
 
     if args.verbose:
-      print("tilemap", tilemapFileName)
+      print("tilemap", tilemapFileName, f"{len(tilemap)}B")
     with open(tilemapFileName, "wb") as file:
       file.write(tilemap)
 
