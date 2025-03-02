@@ -44,6 +44,9 @@ def process_paths(input_path, output_path):
   input_dir = os.path.dirname(input_path)
   input_filename = os.path.basename(input_path)
 
+  if not output_path:
+    output_path = input_path
+
   # Check if output path has an extension (meaning it's a file) or is a directory
   output_has_extension = "." in os.path.basename(output_path)
 

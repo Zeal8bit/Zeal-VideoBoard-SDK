@@ -15,7 +15,7 @@ parser.add_argument("-o", "--output", help="Output path, can be just a path")
 parser.add_argument("-b", "--bpp", help="Bits Per Pixel", type=int, default=8, choices=[1,4,8])
 parser.add_argument("-z", "--compress", help="Compress with RLE", action="store_true")
 parser.add_argument("-s", "--strip", help="Strip N tiles off the end", type=int, default=0)
-parser.add_argument("-c", "--colors", help="Max Colors in Palette", type=int, default=256)
+parser.add_argument("-c", "--colors", help="Max Colors in Palette", type=int, default=None)
 parser.add_argument("-v", "--verbose", help="Verbose output", action='store_true')
 parser.add_argument("-d", "--debug", help="Debug output", action='store_true')
 
@@ -34,6 +34,8 @@ def process_paths(input_path, output_path):
   # Extract input directory and filename
   input_dir = os.path.dirname(input_path)
   input_filename = os.path.basename(input_path)
+  if not output_path:
+    output_path = input_path
 
   # Check if output path has an extension (meaning it's a file) or is a directory
   output_has_extension = "." in os.path.basename(output_path)
@@ -67,11 +69,15 @@ def getPalette(args, gif):
 
   result = []
 
-  max_colors = args.colors
-  if(args.bpp == 1):
-    max_colors = 2
-  if(args.bpp == 4):
-    max_colors = 16
+  if args.colors:
+    max_colors = args.colors
+  else:
+    if(args.bpp == 1):
+      max_colors = 2
+    if(args.bpp == 4):
+      max_colors = 16
+    else:
+      max_colors = 256
 
   for x in range(0, min(max_colors * 3, len(palette)), 3):
     # print("x", x)
