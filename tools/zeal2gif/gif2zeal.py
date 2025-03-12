@@ -192,6 +192,7 @@ def convert(args):
     print("columns", tiles_per_row, "rows", rows, "tiles", (tiles_per_row * rows) - args.strip)
   return (tiles, palette)
 
+
 def parse_filename_flags(args):
   input = args.input
   split = input.rsplit("__", 1)
@@ -237,15 +238,20 @@ def parse_filename_flags(args):
 
   if args.debug:
     print("parser", input, filename, flags, extension)
+
+  args_dict = vars(args)
   return argparse.Namespace(
-    input=input,
-    tileset=tileset,
-    palette=palette,
-    bpp=bpp,
-    compress=compress,
-    colors=colors,
-    strip=strip
-  )
+        **{
+            **args_dict,
+            "input": input,
+            "tileset": tileset,
+            "palette": palette,
+            "bpp": bpp,
+            "compress": compress,
+            "colors": colors,
+            "strip": strip,
+        }
+    )
 
 def main():
   args = parser.parse_args()
