@@ -35,7 +35,7 @@ ZVB_LDFLAGS += -l zvb_sound
 endif
 
 ifeq ($(ENABLE_CRC32), 1)
-ZVB_LDFLAGS += -l zvb_crc32
+ZVB_LDFLAGS += -l zvb_crc
 endif
 
 ZOS_LDFLAGS += $(ZVB_LDFLAGS)

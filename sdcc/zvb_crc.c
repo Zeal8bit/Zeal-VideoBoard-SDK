@@ -28,23 +28,30 @@ uint32_t zvb_crc_update(uint8_t *buffer, uint16_t size)  __sdcccall(1)
 {
     (void) buffer;
     (void) size;
-
+    zvb_map_peripheral(ZVB_PERI_CRC_IDX);
 __asm
     ; Buffer in HL, size in DE
     ld a, d
     or e
     jr z, zvb_crc_update_ret
     ; Use OTIR instructions to go faster, divide the size in number of 256-byte loops
+    ; Round it up since the loop below will stop when A is 0
     ld a, d
     ld b, e
+    ; If B is not 0, A = D+1, else A = D
+    dec b
+    inc b
+    jr z, zvb_crc_update_no_add
+    inc a
+zvb_crc_update_no_add:
     ; Set C to the DATA IN register
     ld c, # ZVB_PERI_BASE + 0x1
 zvb_crc_update_loop:
     otir
     ; Decrement the number of loops
-    sub #1
-    ; On non-carry, continue the loop (B is already 0!)
-    jr nc, zvb_crc_update_loop
+    dec a
+    ; On non-zero, continue the loop (B is already 0!)
+    jp nz, zvb_crc_update_loop
     ; On carry, end of the loop (A was 0 before the sub instruction)
 zvb_crc_update_ret:
     ; Extract the resulting 32-bit value in HLDE
