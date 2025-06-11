@@ -137,15 +137,67 @@ static gfx_error gfx_tileset_load_bitmap(gfx_context* ctx, uint8_t* tileset, uin
     uint16_t from_byte = from % (16*1024);
     gfx_map_tileset(page);
     uint8_t* vram_tileset = (uint8_t*) (VRAM_VIRT_ADDR + from_byte);
+    const uint8_t bpp = ctx->bpp;
 
     while (size--) {
         uint8_t byte = *tileset++;
 
-        for (uint8_t i = 0; i < 8; i++) {
-            *vram_tileset++ = (byte & 0x80) ? pal_offset + 1: pal_offset;
-            byte = byte << 1;
+        if (bpp == 8) {
+            /* If the current mode is 256-color, one bit must be converted to one byte */
+            for (uint8_t i = 0; i < 8; i++) {
+                *vram_tileset++ = pal_offset + ((byte & 0x80) ? 1 : 0);
+                byte = byte << 1;
+            }
+        } else {
+            /* Else, we are in 16-color mode, one bit represent one nibble */
+            for (uint8_t i = 0; i < 4; i++) {
+                const uint8_t left_pix  = pal_offset + ((byte & 0x80) ? 1 : 0);
+                const uint8_t right_pix = pal_offset + ((byte & 0x40) ? 1 : 0);
+                *vram_tileset++ = ((left_pix  & 0xf) << 4) |
+                                   (right_pix & 0xf);
+                byte = byte << 2;
+            }
         }
+        /* Each we reached the end of the page, start all over again */
+        if ((uintptr_t) vram_tileset & (16*1024) != 0) {
+            gfx_map_tileset(++page);
+            vram_tileset = VRAM_VIRT_ADDR;
+        }
+    }
 
+    gfx_demap_vram(ctx->backup_page);
+
+    return GFX_SUCCESS;
+}
+
+
+static gfx_error gfx_tileset_load_2bit(gfx_context* ctx, uint8_t* tileset, uint16_t size, uint16_t from, uint8_t pal_offset, uint8_t opacity)
+{
+    uint8_t  page = from / (16*1024);
+    uint16_t from_byte = from % (16*1024);
+    uint16_t remaining = size;
+    gfx_map_tileset(page);
+    uint8_t* vram_tileset = (uint8_t*) (VRAM_VIRT_ADDR + from_byte);
+    const uint8_t bpp = ctx->bpp;
+    (void) opacity;
+
+    while (size--) {
+        uint8_t byte = *tileset++;
+
+        const uint8_t pix_3 = pal_offset + ((byte >> 0) & 3);
+        const uint8_t pix_2 = pal_offset + ((byte >> 2) & 3);
+        const uint8_t pix_1 = pal_offset + ((byte >> 4) & 3);
+        const uint8_t pix_0 = pal_offset + ((byte >> 6) & 3);
+
+        if (bpp == 8) {
+            *vram_tileset++ = (opacity && pix_0 == pal_offset) ? 0 : pix_0;
+            *vram_tileset++ = (opacity && pix_1 == pal_offset) ? 0 : pix_1;
+            *vram_tileset++ = (opacity && pix_2 == pal_offset) ? 0 : pix_2;
+            *vram_tileset++ = (opacity && pix_3 == pal_offset) ? 0 : pix_3;
+        } else {
+            *vram_tileset++ = ((pix_0 & 0xf) << 4) | (pix_1 & 0xf);
+            *vram_tileset++ = ((pix_2 & 0xf) << 4) | (pix_3 & 0xf);
+        }
         /* Each we reached the end of the page, start all over again */
         if ((uintptr_t) vram_tileset & (16*1024) != 0) {
             gfx_map_tileset(++page);
@@ -237,11 +289,15 @@ static gfx_error gfx_tileset_load_rle(gfx_context* ctx, uint8_t* data, uint16_t 
     return GFX_SUCCESS;
 }
 
-void memaddcpy(uint8_t* dst, uint8_t* src, size_t size, uint8_t offset)
+void memaddcpy(uint8_t* dst, uint8_t* src, size_t size, uint8_t opacity, uint8_t offset)
 {
     if (offset) {
         while (size) {
-            *dst = *src + offset;
+            uint8_t byte = *src + offset;
+            if (opacity && byte == offset) {
+                byte = 0;
+            }
+            *dst = byte;
             src++;
             dst++;
             size--;
@@ -265,14 +321,20 @@ gfx_error gfx_tileset_load(gfx_context* ctx, void* tileset, uint16_t size, const
     uint8_t* vram_tileset = (uint8_t*) VRAM_VIRT_ADDR;
     uint8_t* user_tileset = (uint8_t*) tileset;
 
-    if (ctx->bpp == 8 && compression != TILESET_COMP_NONE) {
+    if (compression != TILESET_COMP_NONE) {
         switch(compression) {
         case TILESET_COMP_1BIT:
             return gfx_tileset_load_bitmap(ctx, user_tileset, size, from, pal_offset);
+        case TILESET_COMP_2BIT:
+            return gfx_tileset_load_2bit(ctx, user_tileset, size, from, pal_offset, opacity);
         case TILESET_COMP_4BIT:
-            return gfx_tileset_load_nibble(ctx, user_tileset, size, from, pal_offset, opacity);
+            if (ctx->bpp == 8)
+                return gfx_tileset_load_nibble(ctx, user_tileset, size, from, pal_offset, opacity);
+            return GFX_INVALID_ARG;
         case TILESET_COMP_RLE:
-            return gfx_tileset_load_rle(ctx, user_tileset, size, from, pal_offset, opacity);
+            if (ctx->bpp == 8)
+                return gfx_tileset_load_rle(ctx, user_tileset, size, from, pal_offset, opacity);
+            return GFX_INVALID_ARG;
         }
     } else {
         /* Calculate the number of 16KB pages we will write to VRAM */
@@ -284,7 +346,7 @@ gfx_error gfx_tileset_load(gfx_context* ctx, void* tileset, uint16_t size, const
             size_t can_copy = 16*1024 - from_byte;
             size_t to_copy = MIN(remaining, can_copy);
             gfx_map_tileset(page++);
-            memaddcpy(vram_tileset + from_byte, user_tileset, to_copy, pal_offset);
+            memaddcpy(vram_tileset + from_byte, user_tileset, to_copy, opacity, pal_offset);
             user_tileset += to_copy;
             remaining -= to_copy;
             from_byte = 0;
