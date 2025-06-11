@@ -12,7 +12,7 @@ parser.add_argument("-i", "--input", help="Input GIF Filename", required=True)
 parser.add_argument("-t", "--tileset", help="Zeal Tileset (ZTS)")
 parser.add_argument("-p", "--palette", help="Zeal Palette (ZTP)")
 parser.add_argument("-o", "--output", help="Output path, can be just a path")
-parser.add_argument("-b", "--bpp", help="Bits Per Pixel", type=int, default=8, choices=[1,4,8])
+parser.add_argument("-b", "--bpp", help="Bits Per Pixel", type=int, default=8, choices=[1,2,4,8])
 parser.add_argument("-z", "--compress", help="Compress with RLE", action="store_true")
 parser.add_argument("-s", "--strip", help="Strip N tiles off the end", type=int, default=0)
 parser.add_argument("-c", "--colors", help="Max Colors in Palette", type=int, default=None)
@@ -74,7 +74,9 @@ def getPalette(args, gif):
   else:
     if(args.bpp == 1):
       max_colors = 2
-    if(args.bpp == 4):
+    elif(args.bpp == 2):
+      max_colors = 4
+    elif(args.bpp == 4):
       max_colors = 16
     else:
       max_colors = 256
@@ -173,8 +175,17 @@ def convert(args):
           b |= (op[idx+7] & 1) << 0
           pixels.append(b)
 
+      elif(args.bpp == 2):
+        op = pixels.copy()
+        pixels = []
+        for idx in range(0, len(op), 4):
+          b =  (op[idx+0] & 3) << 6
+          b |= (op[idx+1] & 3) << 4
+          b |= (op[idx+2] & 3) << 2
+          b |= (op[idx+3] & 3) << 0
+          pixels.append(b)
 
-      if(args.bpp == 4):
+      elif(args.bpp == 4):
         op = pixels.copy()
         pixels = []
         for idx in range(0, len(op), 2):

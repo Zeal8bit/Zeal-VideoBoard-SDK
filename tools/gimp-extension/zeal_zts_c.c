@@ -54,10 +54,10 @@ settings_t g_settings;
 
 /**
  * @brief Show the exporter settings dialog, which lets the user choose optimizations.
- * 
+ *
  * @param reduce_colors true to enable the "2-bit or 4-bit mode" compression checkbox, false to disable it.
  * @param gen_tilemap true to enable the "Generate tilemap" checkbox, false to disable it.
- * 
+ *
  * @return TRUE if the `OK` button was pressed, else the `Close` button was pressed.
  */
 static gboolean settings_dialog(gboolean reduce_colors, gboolean gen_tilemap,
@@ -76,7 +76,7 @@ static gboolean settings_dialog(gboolean reduce_colors, gboolean gen_tilemap,
                             NULL);
 
     /* Create a checkbox for the compress color and place it in the dialog */
-    check_comp = gtk_check_button_new_with_label("Compress tileset colors to 2-bit or 4-bit mode");
+    check_comp = gtk_check_button_new_with_label("Compress tileset colors to 1/2/4-bit mode");
     /* Set initial state of the checkbox */
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check_comp), reduce_colors);
     if (!reduce_colors) {
@@ -109,7 +109,7 @@ static gboolean settings_dialog(gboolean reduce_colors, gboolean gen_tilemap,
     settings->compress_colors  = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check_comp));
     settings->merge_tileset    = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check_tileset));
     settings->generate_tilemap = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check_tilemap));
-    
+
     gtk_widget_destroy(dialog);
     return TRUE;
 }
@@ -273,7 +273,18 @@ static size_t tile_compress(uint8_t* tile, int colors_number, gboolean compress_
                     color |= (tile[i+j] & 1) << (7 - j);
                 tile[i/8] = color;
             }
-            tile_size = i/8;
+            tile_size = TILE_SIZE/8;
+        }
+        else if (colors_number <= 4) {
+            for (i = 0; i < TILE_SIZE; i += 4) {
+                uint_fast8_t color = 0;
+                /* 4 pixels per byte. Pixel 0 will be in bit [7:6], pixel 1 in bit [5:4], etc... */
+                tile[i/4] = ((tile[i + 0] & 3) << 6) |
+                            ((tile[i + 1] & 3) << 4) |
+                            ((tile[i + 2] & 3) << 2) |
+                            ((tile[i + 3] & 3) << 0);
+            }
+            tile_size = TILE_SIZE/4;
         }
         /* If we have less than 17 colors, we can discard the upper nibble */
         else if (colors_number <= 16) {
@@ -281,7 +292,7 @@ static size_t tile_compress(uint8_t* tile, int colors_number, gboolean compress_
                 /* The high nibble becomes the current color, and the lowest nibble is the next color */
                 tile[i/2] = (tile[i] << 4) | (tile[i + 1] & 0xf);
             }
-            tile_size = i/2;
+            tile_size = TILE_SIZE/2;
         }
     }
 

@@ -12,7 +12,7 @@ parser = argparse.ArgumentParser("zeal2gif")
 parser.add_argument("-t","--tileset", help="Zeal Tileset (ZTS)", required=True)
 parser.add_argument("-p", "--palette", help="Zeal Palette (ZTP)", required=True)
 parser.add_argument("-o", "--output", help="Output GIF Filename")
-parser.add_argument("-b", "--bpp", help="Bits Per Pixel", type=int, default=8, choices=[1,4,8])
+parser.add_argument("-b", "--bpp", help="Bits Per Pixel", type=int, default=8, choices=[1,2,4,8])
 parser.add_argument("-z", "--compressed", help="Decompress RLE", action="store_true")
 parser.add_argument("-s", "--show", help="Open in Viewer", action="store_true")
 parser.add_argument("-v", "--verbose", help="Verbose output", action='store_true')
@@ -93,6 +93,16 @@ def getSpritePixels(bpp, tile):
         pixels.append(p)
     sprites.append(pixels)
 
+  elif bpp == 2:
+    # two-bits per pixel
+    pixels = bytearray()
+    for byte in tile:
+      pixels.append((byte >> 6) & 3)
+      pixels.append((byte >> 4) & 3)
+      pixels.append((byte >> 2) & 3)
+      pixels.append((byte >> 0) & 3)
+    sprites.append(pixels)
+
   elif bpp <= 4:
     # one nibble per pixel
     pixels = bytearray()
@@ -144,12 +154,13 @@ def convert(args):
 
   tilesize_bpp = 0
   if args.bpp == 1:
-    tilesize_bpp = tile_width + tile_height
+    tilesize_bpp = (tile_width * tile_height) // 8
+  elif args.bpp == 2:
+    tilesize_bpp = (tile_width * tile_height) // 4
   elif args.bpp <= 4:
-    tilesize_bpp = (tile_width * tile_height) / 2
+    tilesize_bpp = (tile_width * tile_height) // 2
   else:
     tilesize_bpp = tile_width * tile_height
-  tilesize_bpp = int(tilesize_bpp)
 
   tile = data.read(tilesize_bpp)
 
