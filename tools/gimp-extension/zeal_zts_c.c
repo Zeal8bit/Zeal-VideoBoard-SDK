@@ -178,21 +178,36 @@ static int palette_save(const char* filename, const gint32 image)
 /* The worst case of a compressed tile is to have 2 more bytes than original */
 typedef uint8_t zeal_tile_t[TILE_SIZE + 2];
 
+typedef uint32_t zeal_checksum_t;
 
 typedef struct zeal_tileset_node_t {
-    zeal_tile_t tile;
-    size_t size; /* Size in bytes, only makes sense in compressed mode */
+    zeal_tile_t     tile;
+    zeal_checksum_t sum;
+    /* Size in bytes, only makes sense in compressed mode */
+    size_t          size;
     struct zeal_tileset_node_t* next;
 } zeal_tileset_node_t;
 
 typedef struct {
     zeal_tileset_node_t* head;
+    zeal_tileset_node_t* tail;
     int length;
 } zeal_tileset_t;
 
 static int tiles_equal(zeal_tile_t tile1, zeal_tile_t tile2)
 {
     return memcmp(tile1, tile2, TILE_SIZE) == 0;
+}
+
+
+static zeal_checksum_t tile_checksum(zeal_tile_t tile)
+{
+    /* FNV hash function */
+    zeal_checksum_t hash = 2166136261u;
+    for (int i = 0; i < TILE_SIZE; i++) {
+        hash = (hash ^ tile[i]) * 16777619u;
+    }
+    return hash;
 }
 
 static inline int tile_count_same_seq(uint8_t* bytes, size_t len)
@@ -277,7 +292,6 @@ static size_t tile_compress(uint8_t* tile, int colors_number, gboolean compress_
         }
         else if (colors_number <= 4) {
             for (i = 0; i < TILE_SIZE; i += 4) {
-                uint_fast8_t color = 0;
                 /* 4 pixels per byte. Pixel 0 will be in bit [7:6], pixel 1 in bit [5:4], etc... */
                 tile[i/4] = ((tile[i + 0] & 3) << 6) |
                             ((tile[i + 1] & 3) << 4) |
@@ -333,20 +347,22 @@ static size_t tile_compress(uint8_t* tile, int colors_number, gboolean compress_
     return tmp_it;
 }
 
-
-static void tile_get(gint32 drawable, int x, int y, zeal_tile_t tile)
+static void tile_get(gint32 drawable_id, int x, int y, zeal_tile_t tile)
 {
-    guint8* pixel = 0;
-    gint channels = 0;
+    GimpDrawable *drawable = gimp_drawable_get(drawable_id);
+    GimpPixelRgn pixel_rgn;
+    /* Make the assumption that we have a single channel (indexed) */
+    g_return_if_fail(drawable->bpp == 1);
 
-    for (int j = 0; j < ZEAL_TILE_HEIGHT; j++) {
-        for (int i = 0; i < ZEAL_TILE_WIDTH; i++) {
-            pixel = gimp_drawable_get_pixel(drawable, x + i, y + j, &channels);
+    /* Prepare pixel region */
+    gimp_pixel_rgn_init(&pixel_rgn, drawable, x, y,
+                        ZEAL_TILE_WIDTH, ZEAL_TILE_HEIGHT,
+                        FALSE, FALSE); // read-only
+    gimp_pixel_rgn_get_rect(&pixel_rgn, tile, x, y,
+                            ZEAL_TILE_WIDTH, ZEAL_TILE_HEIGHT);
 
-            /* Make the assumption that we have a single channel */
-            tile[j * ZEAL_TILE_WIDTH + i] = pixel[0];
-        }
-    }
+    /* Release the drawable */
+    gimp_drawable_detach(drawable);
 }
 
 
@@ -354,6 +370,7 @@ static void tileset_init(zeal_tileset_t* set)
 {
     if (set) {
         set->head = NULL;
+        set->tail = NULL;
         set->length = 0;
     }
 }
@@ -374,9 +391,35 @@ static void tileset_deinit(zeal_tileset_t* set)
         g_free(node);
     }
 
-    set->head = 0;
+    set->head = NULL;
+    set->tail = NULL;
     set->length = 0;
 }
+
+
+static int tileset_contains(zeal_tileset_t* set, zeal_checksum_t sum, zeal_tile_t tile)
+{
+    if (set->length == 0 || set->head == NULL) {
+        return -1;
+    }
+
+    /* Check if the tile exists already in the set */
+    zeal_tileset_node_t* head = set->head;
+
+    int i = 0;
+    while(head != NULL) {
+        if (head->sum == sum && tiles_equal(head->tile, tile)) {
+            /* We found the tile, return the current index */
+            return i;
+        }
+        /* Go to the next node */
+        head = head->next;
+        i++;
+    }
+
+    return -1;
+}
+
 
 /**
  * @brief Add a given tile to the tileset
@@ -389,22 +432,15 @@ static int tileset_add(zeal_tileset_t* set, zeal_tile_t tile)
         return -1;
     }
 
-    /* Check if the tile exists already in the set */
-    zeal_tileset_node_t* head = set->head;
-    /* Previous will be used to insert the new tile in the set */
-    zeal_tileset_node_t* previous = NULL;
+    /* Get the checksum value of the tile */
+    zeal_checksum_t sum = tile_checksum(tile);
 
     /* Browse the list only if we have to prevent duplicates */
-    int i = 0;
-    while(head != NULL) {
-        if (g_settings.merge_tileset && tiles_equal(head->tile, tile)) {
-            /* We found the tile, return the current index */
-            return i;
+    if (g_settings.merge_tileset) {
+        int index = tileset_contains(set, sum, tile);
+        if (index != -1) {
+            return index;
         }
-        /* Go to the next node */
-        previous = head;
-        head = head->next;
-        i++;
     }
 
     /* We couldn't find the tile in the set, add it! */
@@ -413,19 +449,22 @@ static int tileset_add(zeal_tileset_t* set, zeal_tile_t tile)
         return -1;
     }
 
+    entry->sum = sum;
     entry->size = TILE_SIZE;
     memcpy(entry->tile, tile, TILE_SIZE);
     entry->next = NULL;
-    /* Add it to the tail of the list */
-    if (previous == NULL) {
-        /* Happens when the list is empty */
+
+    if (set->head == NULL) {
         set->head = entry;
+        set->tail = entry;
     } else {
-        previous->next = entry;
+        assert(set->tail != NULL);
+        set->tail->next = entry;
+        set->tail = entry;
     }
     set->length++;
 
-    return i;
+    return set->length - 1;
 }
 
 /**
@@ -542,7 +581,7 @@ static void run (
     gint32 drawable = gimp_image_flatten (image);
 
     const gchar* filename = param[3].data.d_string;
-    const gchar* rawfile = param[4].data.d_string;
+    // const gchar* rawfile = param[4].data.d_string;
     const gint width = gimp_drawable_width(drawable);
     const gint height = gimp_drawable_height(drawable);
 
@@ -560,7 +599,7 @@ static void run (
     const int filename_len = strlen(buf_filename);
     /* Check if the files needs to be compressed */
     const gboolean compress_rle = filename[filename_len - 3] == 'c';
-    gboolean       compress_colors = FALSE;
+    // gboolean       compress_colors = FALSE;
 
     /* Check whether the file to export is explicitely a tilemap */
     const gboolean force_tilemap = (filename[filename_len - 1] == 'm');
@@ -654,7 +693,7 @@ query (void)
         "Zeal 8-bit computer compatible tileset and palette format",
         "Zeal 8-bit",
         "Copyright Zeal 8-bit",
-        "2024",
+        "2023-2025",
         "Zeal Tileset",
         "INDEXED*",
         GIMP_PLUGIN,
@@ -676,7 +715,7 @@ query (void)
         "Zeal 8-bit computer compatible compressed tileset and palette format",
         "Zeal 8-bit",
         "Copyright Zeal 8-bit",
-        "2023",
+        "2023-2025",
         "Zeal Compressed Tileset",
         "INDEXED*",
         GIMP_PLUGIN,
