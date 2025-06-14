@@ -11,11 +11,13 @@ parser = argparse.ArgumentParser("gif2zeal")
 parser.add_argument("-i", "--input", help="Input GIF Filename", required=True)
 parser.add_argument("-t", "--tileset", help="Zeal Tileset (ZTS)")
 parser.add_argument("-p", "--palette", help="Zeal Palette (ZTP)")
+parser.add_argument("-m", "--tilemap", help="Zeal Tilemap (ZTM)")
 parser.add_argument("-o", "--output", help="Output path, can be just a path")
 parser.add_argument("-b", "--bpp", help="Bits Per Pixel", type=int, default=8, choices=[1,2,4,8])
 parser.add_argument("-z", "--compress", help="Compress with RLE", action="store_true")
 parser.add_argument("-s", "--strip", help="Strip N tiles off the end", type=int, default=0)
 parser.add_argument("-c", "--colors", help="Max Colors in Palette", type=int, default=None)
+parser.add_argument("-u", "--unique", help="Remove duplicate tiles", action='store_true')
 parser.add_argument("-v", "--verbose", help="Verbose output", action='store_true')
 parser.add_argument("-d", "--debug", help="Debug output", action='store_true')
 
@@ -142,7 +144,7 @@ def convert(args):
   palette = getPalette(args, gif)
   # print("palette", palette)
 
-  tiles = []
+  tiles = [] # list of tuple(tile)
   tiles_per_row = int(gif.width / tile_width)
   rows = int(gif.height / tile_height)
   total_tiles = tiles_per_row * rows
@@ -194,14 +196,40 @@ def convert(args):
           p1 <<= 4
           pixels.append(p1 + p2)
 
-
-      if(args.compress):
-        pixels = compress(pixels)
-      tiles += pixels
+      tiles.append(tuple(pixels))
 
   if args.debug:
     print("columns", tiles_per_row, "rows", rows, "tiles", (tiles_per_row * rows) - args.strip)
-  return (tiles, palette)
+  if args.verbose:
+    print("total tiles", len(tiles))
+
+  final_tiles = [] # list of possibly unique tuple(tile)
+  unique_tiles = dict.fromkeys(tiles) # unique set of tuple(tile)
+  tilemap = [] # if args.tilemap
+  if args.unique:
+    final_tiles = [list(t) for t in unique_tiles]
+    if args.verbose:
+      print("unique tiles", len(final_tiles))
+  else:
+    final_tiles = [list(t) for t in tiles]
+
+  if args.debug:
+    print("total tiles", len(final_tiles))
+
+  if args.tilemap:
+    tilemap = [list(unique_tiles).index(tile) for tile in tiles]
+    if args.debug:
+      print("tilemap size", len(tilemap))
+
+  output = [] # final list of pixel bytes
+  if(args.compress):
+    for tile in final_tiles:
+      output += compress(tile)
+  else:
+    for tile in final_tiles:
+      output += tile
+
+  return (output, palette, tilemap)
 
 
 def parse_filename_flags(args):
@@ -219,6 +247,8 @@ def parse_filename_flags(args):
   compress = args.compress
   colors = args.colors
   strip = args.strip
+  unique = args.unique
+  tilemap = args.tilemap
 
   if tileset == None:
     tileset = Path(filename).with_suffix(".zts")
@@ -244,6 +274,10 @@ def parse_filename_flags(args):
         h2 = flags[i+2]
         strip = int(h1 + h2, 16)
         i += 2
+      case 'U': # unique
+        unique = True
+      case 'M': # tilemap
+        tilemap = Path(filename).with_suffix(".ztm")
     i += 1
 
 
@@ -257,8 +291,10 @@ def parse_filename_flags(args):
             "input": input,
             "tileset": tileset,
             "palette": palette,
+            "tilemap": tilemap,
             "bpp": bpp,
             "compress": compress,
+            "unique": unique,
             "colors": colors,
             "strip": strip,
         }
@@ -271,7 +307,7 @@ def main():
     print("args", args)
 
 
-  tileset, palette = convert(args)
+  tileset, palette, tilemap = convert(args)
 
   outputDir, outputFilename, outputPath = process_paths(args.input, args.output)
   if args.debug:
@@ -287,10 +323,13 @@ def main():
   paletteFileName = args.palette
   if paletteFileName == None:
     paletteFileName = Path(outputPath).with_suffix(".ztp")
+  tilemapFileName = args.tilemap
 
   if args.verbose:
     print("tileset", tilesetFileName) #, tileset)
     print("palette", paletteFileName) #, palette)
+    if(tilemapFileName):
+      print("tilemap", tilemapFileName)
 
   with open(tilesetFileName, "wb") as file:
     file.write(bytearray(tileset))
@@ -298,6 +337,11 @@ def main():
   create_dir(paletteFileName)
   with open(paletteFileName, "wb") as file:
     file.write(bytearray(palette))
+
+  if tilemapFileName:
+    create_dir(tilemapFileName)
+    with open(tilemapFileName, "wb") as file:
+      file.write(bytearray(tilemap))
 
 if __name__ == "__main__":
   main()
