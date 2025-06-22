@@ -238,7 +238,7 @@ def parse_filename_flags(args):
   if len(split) < 2:
     return args
 
-  filename = split[0]
+  filename = os.path.basename(split[0])
   (flags, extension) = split[1].rsplit(".", 1)
 
   tileset = args.tileset
@@ -250,10 +250,15 @@ def parse_filename_flags(args):
   unique = args.unique
   tilemap = args.tilemap
 
+  output = args.output
+
+  if output == None:
+    output = os.path.dirname(input)
+
   if tileset == None:
-    tileset = Path(filename).with_suffix(".zts")
+    tileset = Path(output, filename).with_suffix(".zts")
   if palette == None:
-    palette = Path(filename).with_suffix(".ztp")
+    palette = Path(output, filename).with_suffix(".ztp")
 
   i = 0
   while i < len(flags):
@@ -277,7 +282,7 @@ def parse_filename_flags(args):
       case 'U': # unique
         unique = True
       case 'M': # tilemap
-        tilemap = Path(filename).with_suffix(".ztm")
+        tilemap = Path(output, filename).with_suffix(".ztm")
     i += 1
 
 
