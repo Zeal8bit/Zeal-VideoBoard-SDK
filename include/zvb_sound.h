@@ -42,6 +42,17 @@ typedef enum {
     VOL_100 = ZVB_PERI_SOUND_VOL_100,
 } sound_volume_t;
 
+// Duty Cycle / PWM (for WAV_SQUARE)
+typedef enum {
+    DUTY_CYCLE_12_5 = 0b001 << 5, // 12.5
+    DUTY_CYCLE_25_0 = 0b010 << 5, // 25
+    DUTY_CYCLE_37_5 = 0b011 << 5, // 25 + 12.5
+    DUTY_CYCLE_50_0 = 0b100 << 5, // 50
+    DUTY_CYCLE_62_5 = 0b101 << 5, // 50 + 12.5
+    DUTY_CYCLE_75_0 = 0b110 << 5, // 50 + 25
+    DUTY_CYCLE_87_5 = 0b111 << 5, // 50 + 25 + 12.5
+} sound_duty_cycle_t;
+
 
 typedef enum {
     SAMPLE_UINT8,   // Unsigned 8-bit samples

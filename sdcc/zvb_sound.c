@@ -19,9 +19,16 @@ void zvb_sound_initialize(uint8_t reset)
 {
     zvb_sound_map();
     if (reset) {
+        zvb_peri_sound_select = VOICE0 | VOICE1 | VOICE2 | VOICE3;
+
         zvb_peri_sound_master_vol = ZVB_PERI_SOUND_VOL_DISABLE;
+        zvb_peri_sound_volume = ZVB_PERI_SOUND_VOL_100;
+        zvb_peri_sound_volume_left = VOICE0 | VOICE1 | VOICE2 | VOICE3;
+        zvb_peri_sound_volume_right = VOICE0 | VOICE1 | VOICE2 | VOICE3;
+
         zvb_peri_sound_select = 0;
         zvb_peri_sound_hold = 0xff;
+
     }
 }
 

@@ -272,6 +272,9 @@ IOB(ZVB_PERI_BASE + 0x2) zvb_peri_sound_wave;   // (WO) Write the lowest 2 bits 
 #define ZVB_PERI_SOUND_SAWTOOTH  2
 #define ZVB_PERI_SOUND_NOISE     3
 
+
+IOB(ZVB_PERI_BASE + 0x3) zvb_peri_sound_volume;   // (WO) Per Voice Volume, Refer to zvb_peri_sound_master_vol for values
+
 /* ---- The following registers are only for the custom sample table voice (7) --- */
 
 /**
@@ -298,6 +301,21 @@ IOB(ZVB_PERI_BASE + 0x2) zvb_peri_sound_sample_conf;   // (R/W)
 #define ZVB_SAMPLE_CONF_READY_BIT   7   // (RO) When 1, the FIFO is empty/all samples have been played
 
 /* ---- The following registers are the "master" registers, affecting all registers ---- */
+
+
+/**
+ * @brief (WO) You can assign a voice to a specific channel (left/right) by setting the
+ * channel bit on `zvb_peri_sound_volume_left` or `zvb_peri_sound_volume_right` accordingly.
+ *
+ * Bit 7 is assigned to the sample voice, you can use `sound_voice_t` to combine voices.
+ *
+ * Example:
+ * zvb_peri_sound_volume_left  = VOICE0 | VOICE2; // VOICE0 and VOICE2 are assigned to left channel
+ * zvb_peri_sound_volume_right = VOICE1 | VOICE3; // VOICE1 and VOICE3 are assigned to right channel
+ *
+ */
+IOB(ZVB_PERI_BASE + 0xb) zvb_peri_sound_volume_left;
+IOB(ZVB_PERI_BASE + 0xc) zvb_peri_sound_volume_right;
 
 /**
  * @brief (WO) Bitmap where bit i holds voice i (1 = on hold, 0 = can output sound)
