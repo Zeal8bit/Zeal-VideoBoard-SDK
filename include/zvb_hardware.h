@@ -107,13 +107,15 @@ IOB(ZVB_CTRL_BASE + 0xc) zvb_ctrl_video_mode;
 /**
  * @brief Video modes for the register above (Video mode register)
  */
-#define ZVB_CTRL_VID_MODE_TEXT_640      0
-#define ZVB_CTRL_VID_MODE_TEXT_320      1
-#define ZVB_CTRL_VID_MODE_GFX_640_8BIT  4
-#define ZVB_CTRL_VID_MODE_GFX_320_8BIT  5
-#define ZVB_CTRL_VID_MODE_GFX_640_4BIT  6
-#define ZVB_CTRL_VID_MODE_GFX_320_4BIT  7
-#define ZVB_CTRL_VID_MODE_GFX_LAST      (ZVB_CTRL_VID_MODE_GFX_320_4BIT)
+#define ZVB_CTRL_VID_MODE_TEXT_640          0
+#define ZVB_CTRL_VID_MODE_TEXT_320          1
+#define ZVB_CTRL_VID_MODE_BITMAP_256_MODE   2
+#define ZVB_CTRL_VID_MODE_BITMAP_320_MODE   3
+#define ZVB_CTRL_VID_MODE_GFX_640_8BIT      4
+#define ZVB_CTRL_VID_MODE_GFX_320_8BIT      5
+#define ZVB_CTRL_VID_MODE_GFX_640_4BIT      6
+#define ZVB_CTRL_VID_MODE_GFX_320_4BIT      7
+#define ZVB_CTRL_VID_MODE_GFX_LAST          (ZVB_CTRL_VID_MODE_GFX_320_4BIT)
 
 /**
  * @brief Video mode status. The meaning of each bit is:

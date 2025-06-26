@@ -78,7 +78,7 @@ __endasm;
 gfx_error gfx_initialize(uint8_t mode, gfx_context* out)
 {
     if (out == NULL ||
-        mode > ZVB_CTRL_VID_MODE_GFX_LAST || mode < ZVB_CTRL_VID_MODE_GFX_640_8BIT)
+        mode > ZVB_CTRL_VID_MODE_GFX_LAST || mode < ZVB_CTRL_VID_MODE_BITMAP_256_MODE)
     {
         return GFX_INVALID_ARG;
     }

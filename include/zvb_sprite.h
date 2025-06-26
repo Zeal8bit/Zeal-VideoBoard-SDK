@@ -38,6 +38,22 @@ typedef enum {
     SPRITE_FLIP_Y       = 1 << 2,
     SPRITE_FLIP_X       = 1 << 3,
     /* The upper nibble is the palette, check the macro above */
+    SPRITE_PALETTE_00    = 0 << 4,
+    SPRITE_PALETTE_01    = 1 << 4,
+    SPRITE_PALETTE_02    = 2 << 4,
+    SPRITE_PALETTE_03    = 3 << 4,
+    SPRITE_PALETTE_04    = 4 << 4,
+    SPRITE_PALETTE_05    = 5 << 4,
+    SPRITE_PALETTE_06    = 6 << 4,
+    SPRITE_PALETTE_07    = 7 << 4,
+    SPRITE_PALETTE_08    = 8 << 4,
+    SPRITE_PALETTE_09    = 9 << 4,
+    SPRITE_PALETTE_10    = 10 << 4,
+    SPRITE_PALETTE_11    = 11 << 4,
+    SPRITE_PALETTE_12    = 12 << 4,
+    SPRITE_PALETTE_13    = 13 << 4,
+    SPRITE_PALETTE_14    = 14 << 4,
+    SPRITE_PALETTE_15    = 15 << 4,
 } gfx_sprite_flags;
 
 
