@@ -341,3 +341,24 @@ IOB(ZVB_PERI_BASE + 0xe) zvb_peri_sound_master_vol;
  * For example, if reg[0xE] contains 0x0F, all 4 voices will be configured when writes are performed on frequency and/or waveveform registers.
  */
  IOB(ZVB_PERI_BASE + 0xf) zvb_peri_sound_select;    // (R/W)
+
+
+/* -------- DMA controller -------- */
+
+/**
+ * @brief Banked DMA Control module.
+ * Used to do cool things ... lol
+ */
+#define ZVB_PERI_DMA_IDX   4
+
+
+IOB(ZVB_PERI_BASE + 0x0) zvb_peri_dma_ctrl;     // (R/W) Control register, check the bits defined below
+#define ZVB_PERI_DMA_CTRL_START     0x80
+
+IOB(ZVB_PERI_BASE + 0x1) zvb_peri_dma_addr0;  // (WO)
+IOB(ZVB_PERI_BASE + 0x2) zvb_peri_dma_addr1;  // (WO)
+IOB(ZVB_PERI_BASE + 0x3) zvb_peri_dma_addr2;  // (WO)
+IOB(ZVB_PERI_BASE + 0x9) zvb_peri_dma_clk_div;// (WO)
+
+#define ZVB_PERI_DMA_OP_INC         0
+#define ZVB_PERI_DMA_OP_DEC         1

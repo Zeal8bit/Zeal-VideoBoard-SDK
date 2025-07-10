@@ -38,6 +38,10 @@ ifeq ($(ENABLE_CRC32), 1)
 ZVB_LDFLAGS += -l zvb_crc
 endif
 
+ifeq ($(ENABLE_DMA), 1)
+ZVB_LDFLAGS += -l zvb_dma
+endif
+
 ZOS_LDFLAGS += $(ZVB_LDFLAGS)
 
 
