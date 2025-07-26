@@ -90,8 +90,18 @@ void zvb_sound_reset(void);
  * @brief Set one or multiple voices outputs.
  *
  * @param voices Voices to set, the VOICE[0-3] values can be ORed.
+ *        SAMPTAB must NOT be specified.
  */
 void zvb_sound_set_voices(sound_voice_t voices, uint16_t divider, sound_waveform_t waveform);
+
+
+/**
+ * @brief Set volume for one or multiple voices.
+ *
+ * @param voices Voices to set, the VOICE[0-3] values can be ORed.
+ *        SAMPTAB must NOT be specified.
+ */
+void zvb_sound_set_voices_vol(sound_voice_t voices, sound_volume_t vol);
 
 
 /**
@@ -101,9 +111,24 @@ void zvb_sound_set_hold(sound_voice_t voices, uint8_t hold);
 
 
 /**
- * @brief Set the master volume than will affect all the voices.
+ * @brief Assign voices to the channels.
+ *
+ * @param left_voices  Voices to set, SAMPTAB and VOICE[0-3] values can be ORed.
+ * @param right_voices Voices to set, SAMPTAB and VOICE[0-3] values can be ORed.
+ */
+void zvb_sound_set_channels(sound_voice_t left_voices, sound_voice_t right_voices);
+
+
+/**
+ * @brief Set the master volume for both channels.
  */
 void zvb_sound_set_volume(sound_volume_t vol);
+
+
+/**
+ * @brief Set the master volume for the left and right channels respectively.
+ */
+void zvb_sound_set_volumes(sound_volume_t left, sound_volume_t right);
 
 
 /**

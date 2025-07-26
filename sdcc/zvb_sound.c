@@ -10,6 +10,8 @@
 
 #define BIT(n)  (1 << (n))
 
+static uint8_t s_mst_hold;
+
 static inline void zvb_sound_map(void)
 {
     zvb_map_peripheral(ZVB_PERI_SOUND_IDX);
@@ -20,15 +22,15 @@ void zvb_sound_initialize(uint8_t reset)
     zvb_sound_map();
     if (reset) {
         zvb_peri_sound_select = VOICE0 | VOICE1 | VOICE2 | VOICE3;
-
-        zvb_peri_sound_master_vol = ZVB_PERI_SOUND_VOL_DISABLE;
-        zvb_peri_sound_volume = ZVB_PERI_SOUND_VOL_100;
-        zvb_peri_sound_volume_left = VOICE0 | VOICE1 | VOICE2 | VOICE3;
-        zvb_peri_sound_volume_right = VOICE0 | VOICE1 | VOICE2 | VOICE3;
-
-        zvb_peri_sound_select = 0;
         zvb_peri_sound_hold = 0xff;
 
+        /* By default, set both channels volume to 100% and assign all voices to both channels */
+        zvb_peri_sound_volume = ZVB_PERI_SOUND_VOL_100;
+        zvb_peri_sound_left_channel = VOICE0 | VOICE1 | VOICE2 | VOICE3;
+        zvb_peri_sound_right_channel = VOICE0 | VOICE1 | VOICE2 | VOICE3;
+        zvb_peri_sound_master_vol = ZVB_PERI_SOUND_VOL_DISABLE;
+
+        zvb_peri_sound_select = 0;
     }
 }
 
@@ -43,8 +45,8 @@ void zvb_sound_set_voices(sound_voice_t voices, uint16_t divider, sound_waveform
 {
     zvb_sound_map();
 
-    sound_voice_t state = zvb_peri_sound_hold;
-    zvb_sound_set_hold(voices, 1);
+    /* Temporarily hold the voices */
+    zvb_peri_sound_hold = s_mst_hold | voices;
 
     /* Map the voices */
     zvb_peri_sound_select = voices;
@@ -53,36 +55,54 @@ void zvb_sound_set_voices(sound_voice_t voices, uint16_t divider, sound_waveform
     zvb_peri_sound_freq_high = (divider >> 8) & 0xff;
     zvb_peri_sound_wave = waveform;
     /* Unhold the voices if they were unhold before the call */
-    zvb_peri_sound_hold = state;
+    zvb_peri_sound_hold = s_mst_hold;
 }
 
-
-sound_voice_t zvb_sound_get_hold(void)
+void zvb_sound_set_voices_vol(sound_voice_t voices, sound_volume_t vol)
 {
     zvb_sound_map();
-    return zvb_peri_sound_hold;
+    zvb_peri_sound_select = voices;
+    zvb_peri_sound_volume = vol;
 }
+
 
 void zvb_sound_set_hold(sound_voice_t voices, uint8_t hold)
 {
     zvb_sound_map();
     if (hold == 0) {
-        zvb_peri_sound_hold &= ~voices;
+        s_mst_hold &= ~voices;
     } else {
-        zvb_peri_sound_hold |= voices;
+        s_mst_hold |= voices;
     }
+    zvb_peri_sound_hold = s_mst_hold;
 }
 
-sound_volume_t zvb_sound_get_volume(void)
+sound_voice_t zvb_sound_get_hold(void)
+{
+    return s_mst_hold;
+}
+
+
+void zvb_sound_set_channels(sound_voice_t left_voices, sound_voice_t right_voices)
 {
     zvb_sound_map();
-    return zvb_peri_sound_master_vol;
+    zvb_peri_sound_left_channel = left_voices;
+    zvb_peri_sound_right_channel = right_voices;
 }
 
 void zvb_sound_set_volume(sound_volume_t vol)
 {
     zvb_sound_map();
-    zvb_peri_sound_master_vol = vol;
+    zvb_sound_set_volumes(vol, vol);
+}
+
+
+void zvb_sound_set_volumes(sound_volume_t left, sound_volume_t right)
+{
+    zvb_sound_map();
+    uint8_t val = (left == VOL_0) ? 0x40 : left;
+    val |=  (right == VOL_0) ? 0x80 : (right << 2);
+    zvb_peri_sound_master_vol = val;
 }
 
 
@@ -98,10 +118,15 @@ static uint8_t zvb_sound_int_to_conf(sample_int mode)
 }
 
 
-static void zvb_sound_wait_samples(void)
+static void zvb_sound_wait_empty(void)
 {
-    while ((zvb_peri_sound_sample_conf & 0x80) == 0) {
+    while ((zvb_peri_sound_sample_conf & BIT(ZVB_SAMPLE_CONF_READY_BIT)) == 0) {
     }
+}
+
+static uint8_t zvb_sound_fifo_full(void)
+{
+    return (zvb_peri_sound_sample_conf & BIT(ZVB_SAMPLE_CONF_FULL_BIT)) != 0;
 }
 
 
@@ -118,39 +143,21 @@ void zvb_sound_play_samples(sound_samples_conf_t* config, void* samples, uint16_
     zvb_peri_sound_sample_conf = zvb_sound_int_to_conf(config->mode);
     zvb_peri_sound_sample_div = config->divider;
 
-    /* Hold all the voices but the current one */
-    zvb_peri_sound_hold = 0xff;
-
-    /* Set the master volume */
-    zvb_peri_sound_master_vol = VOL_100;
+    /* Unhold sample table if it is held */
+    zvb_peri_sound_hold = s_mst_hold & ~SAMPTAB;
 
     /* Play all the samples */
-    uint16_t remaining = length;
     uint8_t* data = (uint8_t*) samples;
 
-    /* If played in the emulator, no need to split the samples into smaller chunks */
-    if ((zvb_peri_sound_sample_conf >> 6) & 1) {
-        zvb_sound_wait_samples();
-        while (remaining--) {
+    while (length > 0) {
+        if (!zvb_sound_fifo_full()) {
             zvb_peri_sound_sample_fifo = *data++;
-        }
-        zvb_peri_sound_hold = ~SAMPTAB;
-    } else {
-        while (remaining > 0) {
-            /* Calculate the minimum between the FIFO length and the remaining bytes */
-            uint16_t min = remaining < SOUND_SAMPLE_TABLE_SIZE ? remaining : SOUND_SAMPLE_TABLE_SIZE;
-
-            /* Wait for the voice to be ready (i.e. finish outputting previous samples) */
-            zvb_sound_wait_samples();
-
-            /* Subtract the remaining length before we alter `min` variable */
-            remaining -= min;
-            while (min--) {
-                zvb_peri_sound_sample_fifo = *data++;
-            }
-
-            /* Unhold the sample table voice */
-            zvb_peri_sound_hold = ~SAMPTAB;
+            length--;
         }
     }
+
+    /* Make sure all the samples have been played */
+    zvb_sound_wait_empty();
+
+    zvb_peri_sound_hold = s_mst_hold;
 }

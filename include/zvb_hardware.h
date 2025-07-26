@@ -268,6 +268,18 @@ IOB(ZVB_PERI_BASE + 0x7) zvb_peri_crc_byte3;    // (RO) Byte 3 of the resulting 
 IOB(ZVB_PERI_BASE + 0x0) zvb_peri_sound_freq_low;   // (WO) Low byte of the 16-bit frequency. Value taken into account *after* high byte HIGH byte is written
 IOB(ZVB_PERI_BASE + 0x1) zvb_peri_sound_freq_high;  // (WO) High byte of the 16-bit frequency, latches the previously written low byte
 
+/**
+ * @brief Lowest 2 bits of this register represent the waveform for the voice, as described by the defines below
+ * The highest 3 bits represent the duty-cycle for the square wave waveform (if selected):
+ * 0b111 -> 87.5%
+ * 0b110 -> 75%
+ * 0b101 -> 62.5%
+ * 0b100 -> 50%
+ * 0b011 -> 37.5%
+ * 0b010 -> 25%
+ * 0b001 -> 12.5%
+ * 0b000 -> 0%
+ */
 IOB(ZVB_PERI_BASE + 0x2) zvb_peri_sound_wave;   // (WO) Write the lowest 2 bits to choose the waveform
 #define ZVB_PERI_SOUND_SQUARE    0
 #define ZVB_PERI_SOUND_TRIANGLE  1
@@ -300,6 +312,7 @@ IOB(ZVB_PERI_BASE + 0x2) zvb_peri_sound_sample_conf;   // (R/W)
 #define ZVB_SAMPLE_CONF_SIZE_BIT    0   // 1: (unsigned) 8 bit mode, 0: 16-bit mode
 #define ZVB_SAMPLE_CONF_RSVD_BIT    1
 #define ZVB_SAMPLE_CONF_SIGN_BIT    2   // Only for 16-bit mode, ignored for 8-bit mode. 1: signed samples, 0: unsigned samples
+#define ZVB_SAMPLE_CONF_FULL_BIT    6   // (RO) When 1, the FIFO is full
 #define ZVB_SAMPLE_CONF_READY_BIT   7   // (RO) When 1, the FIFO is empty/all samples have been played
 
 /* ---- The following registers are the "master" registers, affecting all registers ---- */
@@ -316,8 +329,8 @@ IOB(ZVB_PERI_BASE + 0x2) zvb_peri_sound_sample_conf;   // (R/W)
  * zvb_peri_sound_volume_right = VOICE1 | VOICE3; // VOICE1 and VOICE3 are assigned to right channel
  *
  */
-IOB(ZVB_PERI_BASE + 0xb) zvb_peri_sound_volume_left;
-IOB(ZVB_PERI_BASE + 0xc) zvb_peri_sound_volume_right;
+IOB(ZVB_PERI_BASE + 0xb) zvb_peri_sound_left_channel;
+IOB(ZVB_PERI_BASE + 0xc) zvb_peri_sound_right_channel;
 
 /**
  * @brief (WO) Bitmap where bit i holds voice i (1 = on hold, 0 = can output sound)
@@ -326,8 +339,13 @@ IOB(ZVB_PERI_BASE + 0xc) zvb_peri_sound_volume_right;
 IOB(ZVB_PERI_BASE + 0xd) zvb_peri_sound_hold;
 
 /**
- * @brief (WO) Master volume, controls the output of all the voices
- * Bit 7 can be used to disable the outptu completely. Lowest two bits control the volume.
+ * @brief (WO) Master volume, controls the output of the right and left channels.
+ * The register is organized as follows:
+ * Bits 0-1: left channel volume, the steps are defined as ZVB_PERI_SOUND_VOL_* macros
+ * Bits 2-3: right channel volume, the steps are defined as ZVB_PERI_SOUND_VOL_* macros
+ * Bits 4-5: reserved
+ * Bit 6: left channel volume disable (0%)
+ * Bit 7: right channel volume disable (0%)
  */
 IOB(ZVB_PERI_BASE + 0xe) zvb_peri_sound_master_vol;
 #define ZVB_PERI_SOUND_VOL_DISABLE  0x80  // Disables master volume (volume = 0)
