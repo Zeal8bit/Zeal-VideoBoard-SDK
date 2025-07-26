@@ -66,7 +66,7 @@ static void parse_note(char* note)
     } else if (c1 == 'T') {
         if (c2 >= '0' && c2 <= '2') {
             extern sound_waveform_t note_waveform;
-            note_waveform = (sound_waveform_t) (c2 - '0');
+            note_waveform = (sound_waveform_t) (c2 - '0') | DUTY_CYCLE_50_0;
         } else {
             printf("Invalid waveform, ignoring\n");
         }

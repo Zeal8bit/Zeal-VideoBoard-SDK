@@ -62,8 +62,13 @@ int main(int argc, char** argv) {
     /* The file has been parsed and the table partition has been filled */
     zvb_sound_initialize(1);
     zvb_sound_set_voices(VOICE0, 0, note_waveform);
-    zvb_sound_set_hold(VOICE0, 0);
+    /* Assign the channel to the left and right channels even if `initialize`
+     * may have done it already. */
+    zvb_sound_set_channels(VOICE0, VOICE0);
+    zvb_sound_set_voices_vol(VOICE0, VOL_100);
     zvb_sound_set_volume(VOL_100);
+    /* Let's play! */
+    zvb_sound_set_hold(VOICE0, 0);
 
     for (uint16_t i = 0; i < partition_length; i++) {
         zvb_sound_set_voices(VOICE0, partition[i], note_waveform);

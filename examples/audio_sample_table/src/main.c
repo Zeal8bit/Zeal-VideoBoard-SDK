@@ -22,6 +22,9 @@ int main(int argc, char** argv) {
     (void) argv;
     /* Initialize the sound controller and reset it */
     zvb_sound_initialize(1);
+    /* Assign the sample table to both channels */
+    zvb_sound_set_channels(SAMPTAB, SAMPTAB);
+    zvb_sound_set_volume(VOL_100);
 
     /* The sample in the `hello.bin` audio file are signed 16 bit values, it
      * must be played at a sample rate of ~11022Hz, so the divider is:
