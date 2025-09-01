@@ -196,21 +196,21 @@ static void init(void) {
     err = gfx_tileset_load(&vctx, &_snake_tileset_start, tileset_size, &options);
     if (err) exit(1);
 
-    extern uint8_t _letters_tileset_end;
-    extern uint8_t _letters_tileset_start;
-    const size_t letter_tileset_size = &_letters_tileset_end - &_letters_tileset_start;
+    extern uint8_t _letters_end;
+    extern uint8_t _letters_start;
+    const size_t letter_size = &_letters_end - &_letters_start;
     options.compression = TILESET_COMP_4BIT;
     options.from_byte = 0x4100; // 'A' << 256
     options.pal_offset = 32;
     options.opacity = 1;
-    err = gfx_tileset_load(&vctx, &_letters_tileset_start, letter_tileset_size, &options);
+    err = gfx_tileset_load(&vctx, &_letters_start, letter_size, &options);
     if (err) exit(1);
 
-    extern uint8_t _numbers_tileset_end;
-    extern uint8_t _numbers_tileset_start;
-    const size_t numbers_tileset_size = &_numbers_tileset_end - &_numbers_tileset_start;
+    extern uint8_t _numbers_end;
+    extern uint8_t _numbers_start;
+    const size_t numbers_size = &_numbers_end - &_numbers_start;
     options.from_byte = 0x3000; // '0' << 256
-    err = gfx_tileset_load(&vctx, &_numbers_tileset_start, numbers_tileset_size, &options);
+    err = gfx_tileset_load(&vctx, &_numbers_start, numbers_size, &options);
     if (err) exit(1);
 
     /* Create two colored tiles for the background */
@@ -481,6 +481,9 @@ _y_ok:
 __endasm;
 }
 
+
+#if !GENERATED_ASSETS
+
 /**
  * @brief Workaround to include a binary file in the program
  */
@@ -494,16 +497,18 @@ __snake_tileset_end:
 
 void _letters_tileset(void) {
     __asm
-__letters_tileset_start:
+__letters_start:
     .incbin "assets/letters.zts"
-__letters_tileset_end:
+__letters_end:
     __endasm;
 }
 
 void _numbers_tileset(void) {
     __asm
-__numbers_tileset_start:
+__numbers_start:
     .incbin "assets/numbers.zts"
-__numbers_tileset_end:
+__numbers_end:
     __endasm;
 }
+
+#endif // !GENERATED_ASSETS
