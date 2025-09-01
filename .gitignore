@@ -63,3 +63,11 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+# CMake build directories
+/build*/
+[Cc]MakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+install_manifest.txt
+CTestTestfile.cmake
+Testing/
