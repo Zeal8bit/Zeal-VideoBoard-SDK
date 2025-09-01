@@ -1,7 +1,5 @@
-# ZVBConfig.cmake
 # Called by: find_package(ZVB REQUIRED)
 
-# Create a list of libraries
 set(libraries zvb_crc zvb_dma zvb_gfx zvb_sound)
 
 foreach(lib ${libraries})
