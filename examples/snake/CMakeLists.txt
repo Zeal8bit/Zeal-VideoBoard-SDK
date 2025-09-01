@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.16)
 
 set(ZOS_TOOLCHAIN sdcc)
 include($ENV{ZOS_PATH}/cmake/zos_init.cmake)
-include($ENV{ZVB_SDK_PATH}/cmake/zvb_init.cmake)
+
+zos_use(zvb)
 
 project(snake_game C ASM)
 
