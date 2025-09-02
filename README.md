@@ -32,12 +32,28 @@ This repository contains everything you need to start developing for the Zeal 8-
 
 This repository comes with a pre-built library of the SDK located in `lib/` directory. This file is meant to be linked with programs written in C and compiled with [SDCC](https://sdcc.sourceforge.net) compiler.
 
-The demos written in Z80 assembler, as well as the assembly "header" files, are meant to be assembled with z88dk's z80asm assembler. Check their [official Github page](https://github.com/z88dk/z88dk) for more information about how to install it.
+The demos written in Z80 assembly, as well as the assembly "header" files, are meant to be assembled with z88dk's z80asm assembler. Check their [official Github page](https://github.com/z88dk/z88dk) for more information about how to install it.
 
 To compile the examples, you will need to define the path to this current repository in the environment variable `ZVB_SDK_PATH`:
 
 ```
 export ZVB_SDK_PATH=/path/to/Zeal-VideoBoard-SDK
+```
+
+### Compile from source
+
+Although precompiled libraries are already available in the `lib/` directory, it is also possible to build them from source.
+
+#### Using CMake
+
+To build them with CMake, run the following commands:
+
+```bash
+cd lib
+# Remove the existing libraries
+rm *.lib
+cmake ..
+make
 ```
 
 ### Usage
@@ -56,9 +72,12 @@ If you plan on running your program on Zeal 8-bit Computer, you may need to use 
 
 At the moment, this API reference is only referring to the C library as there is no assembly implementation.
 
-* Graphics: This part of the library defines functions to control the screen, set the color palettes, manipulate the tilesets and tilemaps. These functions are declared and documented in [`include/zvb_gfx.h`](include/zvb_gfx.h) header file.
+* Graphics: this library defines functions to control the screen, set the color palettes, manipulate the tilesets and tilemaps. These functions are declared and documented in [`include/zvb_gfx.h`](include/zvb_gfx.h) header file.
+* Sprites: this part of the GFX library manages the on-screen sprites, the API is declared and documented in [`include/zvb_sprite.h`](include/zvb_sprite.h) header file.
+* CRC: this library manages the hardware CRC32 controller, the API is declared and documented in [`include/zvb_crc.h`](include/zvb_crc.h) header file.
+* SPI: this library manages the hardware SPI controller, the API is declared and documented in [`include/zvb_spi.h`](include/zvb_spi.h) header file.
+* Audio: this library manages the sound output, the API functions are declared and documented in [`include/zvb_sound.h`](include/zvb_sound.h) header file.
 * Controller: TBD, library to manage input devices such as game controllers or joysticks.
-* Audio: TBD, library to manage the sound output.
 
 ### Code Examples
 
