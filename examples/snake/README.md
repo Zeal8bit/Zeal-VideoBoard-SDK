@@ -22,9 +22,14 @@ export ZVB_SDK_PATH=/path/to/zeal-svb-sdk
 export ZOS_PATH=/path/to/zeal-8bit-os
 ```
 
-After defining both, you can simply use:
+#### Using CMake (recommended)
+
+Use the following command to build using cmake:
 
 ```
+mkdir build
+cd build
+cmake ..
 make
 ```
 
@@ -33,6 +38,13 @@ Keep in mind that you will need `sdcc` v4.2.0 or newer to compile the program.
 > [!NOTE]
 > The resulting binary that contains the game is `bin/snake.bin`. This binary can be embedded to a Zeal 8-bit OS romdisk image or transferred via UARt to Zeal 8-bit Computer to be executed there.
 
+#### Using make (deprecated)
+
+After defining both, you can simply use:
+
+```
+make
+```
 
 ### Tileset
 
