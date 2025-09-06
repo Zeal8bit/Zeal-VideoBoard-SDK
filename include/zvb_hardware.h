@@ -121,7 +121,9 @@ IOB(ZVB_CTRL_BASE + 0xc) zvb_ctrl_video_mode;
  * @brief Video mode status. The meaning of each bit is:
  * Bit 0 - Set when in H-blank (RO)
  * Bit 1 - Set when in V-blank (RO)
- * Bit 2:6 - Reserved
+ * Bit 2 - Enable v-blank interrupts (R/W)
+ * Bit 3 - Enable h-blank interrupts (R/W)
+ * Bit 4:6 - Reserved
  * Bit 7 - Set to enable screen. Black screen when unset. (R/W)
  */
 IOB(ZVB_CTRL_BASE + 0xd) zvb_ctrl_status;
@@ -132,6 +134,23 @@ IOB(ZVB_CTRL_BASE + 0xd) zvb_ctrl_status;
 #define ZVB_CTRL_STATUS_HBLANK_BIT      0
 #define ZVB_CTRL_STATUS_VBLANK_BIT      1
 #define ZVB_CTRL_STATUS_SCREEN_ON_BIT   7
+
+/**
+ * @brief Video Board Interrupt Status and Clear
+ * Bit 0 - H-blank interrupt (R/Write-to-clear)
+ * Bit 1 - V-blank interrupt (R/Write-to-clear)
+ * Bit 2 - GP interrupt (timer or audio) (RO)
+ */
+IOB(ZVB_CTRL_BASE + 0xe) zvb_ctrl_int_st_clr;
+
+/**
+ * @brief Video Board Peripheral Interrupts
+ * Bit 0 - Audio interrupt (WO)
+ * Bit 1 - Reserved interrupt (WO)
+ * Bit 2 - Timer interrupt (WO)
+ */
+IOB(ZVB_CTRL_BASE + 0xf) zvb_ctrl_int_peri;
+
 
 /*****************************************************************************/
 
@@ -312,6 +331,7 @@ IOB(ZVB_PERI_BASE + 0x2) zvb_peri_sound_sample_conf;   // (R/W)
 #define ZVB_SAMPLE_CONF_SIZE_BIT    0   // 1: (unsigned) 8 bit mode, 0: 16-bit mode
 #define ZVB_SAMPLE_CONF_RSVD_BIT    1
 #define ZVB_SAMPLE_CONF_SIGN_BIT    2   // Only for 16-bit mode, ignored for 8-bit mode. 1: signed samples, 0: unsigned samples
+#define ZVB_SAMPLE_CONF_INTENA_BIT  3   // (R/W) When 1, interrupts are enabled when FIFO is empty
 #define ZVB_SAMPLE_CONF_FULL_BIT    6   // (RO) When 1, the FIFO is full
 #define ZVB_SAMPLE_CONF_READY_BIT   7   // (RO) When 1, the FIFO is empty/all samples have been played
 
@@ -365,7 +385,7 @@ IOB(ZVB_PERI_BASE + 0xe) zvb_peri_sound_master_vol;
 
 /**
  * @brief Banked DMA Control module.
- * Used to do cool things ... lol
+ * Used to speed up transfers from/to any physical address.
  */
 #define ZVB_PERI_DMA_IDX   4
 
@@ -380,3 +400,29 @@ IOB(ZVB_PERI_BASE + 0x9) zvb_peri_dma_clk_div;// (WO)
 
 #define ZVB_PERI_DMA_OP_INC         0
 #define ZVB_PERI_DMA_OP_DEC         1
+
+
+/* -------- Timer controller -------- */
+
+/**
+ * @brief Banked Timer Control module.
+ */
+#define ZVB_PERI_TIMER_IDX   6
+
+
+IOB(ZVB_PERI_BASE + 0x0) zvb_peri_timer_ctrl;     // (R/W) Control register, check the bits defined below
+#define ZVB_PERI_TIMER_CTRL_ENABLE  0x80
+#define ZVB_PERI_TIMER_CTRL_AUTOREL 0x40
+#define ZVB_PERI_TIMER_CTRL_DIR     0x20    // 0 = up, 1 = down
+#define ZVB_PERI_TIMER_CTRL_INT_ENA 0x10
+
+#define ZVB_PERI_TIMER_CTRL_RESET   0x01
+
+
+IOB(ZVB_PERI_BASE + 0x1) zvb_peri_time_div_lo;  // Clock Divider - LSB (WO)
+IOB(ZVB_PERI_BASE + 0x2) zvb_peri_time_div_hi;  // Clock Divider - MSB (WO)
+IOB(ZVB_PERI_BASE + 0x3) zvb_peri_time_rel_lo;  // Reload value - LSB (WO)
+IOB(ZVB_PERI_BASE + 0x4) zvb_peri_time_rel_hi;  // Reload value - MSB (WO)
+IOB(ZVB_PERI_BASE + 0x5) zvb_peri_time_cnt_lo;  // Counter value - LSB (R/W)
+IOB(ZVB_PERI_BASE + 0x6) zvb_peri_time_cnt_hi;  // Counter value - MSB (R/W)
+IOB(ZVB_PERI_BASE + 0x7) zvb_peri_time_int_st;  // Interrupt status (R/W, write-to-clear)
