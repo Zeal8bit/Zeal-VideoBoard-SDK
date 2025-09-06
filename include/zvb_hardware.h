@@ -419,10 +419,16 @@ IOB(ZVB_PERI_BASE + 0x0) zvb_peri_timer_ctrl;     // (R/W) Control register, che
 #define ZVB_PERI_TIMER_CTRL_RESET   0x01
 
 
-IOB(ZVB_PERI_BASE + 0x1) zvb_peri_time_div_lo;  // Clock Divider - LSB (WO)
-IOB(ZVB_PERI_BASE + 0x2) zvb_peri_time_div_hi;  // Clock Divider - MSB (WO)
-IOB(ZVB_PERI_BASE + 0x3) zvb_peri_time_rel_lo;  // Reload value - LSB (WO)
-IOB(ZVB_PERI_BASE + 0x4) zvb_peri_time_rel_hi;  // Reload value - MSB (WO)
-IOB(ZVB_PERI_BASE + 0x5) zvb_peri_time_cnt_lo;  // Counter value - LSB (R/W)
-IOB(ZVB_PERI_BASE + 0x6) zvb_peri_time_cnt_hi;  // Counter value - MSB (R/W)
-IOB(ZVB_PERI_BASE + 0x7) zvb_peri_time_int_st;  // Interrupt status (R/W, write-to-clear)
+IOB(ZVB_PERI_BASE + 0x1) zvb_peri_timer_div_lo;  // Clock Divider - LSB (WO)
+IOB(ZVB_PERI_BASE + 0x2) zvb_peri_timer_div_hi;  // Clock Divider - MSB (WO)
+IOB(ZVB_PERI_BASE + 0x3) zvb_peri_timer_rel_lo;  // Reload value - LSB (WO)
+IOB(ZVB_PERI_BASE + 0x4) zvb_peri_timer_rel_hi;  // Reload value - MSB (WO)
+IOB(ZVB_PERI_BASE + 0x5) zvb_peri_timer_cnt_lo;  // Counter value - LSB (R/W)
+IOB(ZVB_PERI_BASE + 0x6) zvb_peri_timer_cnt_hi;  // Counter value - MSB (R/W)
+IOB(ZVB_PERI_BASE + 0x7) zvb_peri_timer_int_st;  // Interrupt status (R/W, write-to-clear)
+
+// Common clock dividers
+#define ZVB_PERI_TIMER_CLOCK_DIV_1KHZ    49999
+#define ZVB_PERI_TIMER_CLOCK_DIV_10KHZ   4999
+#define ZVB_PERI_TIMER_CLOCK_DIV_100MHZ  499
+#define ZVB_PERI_TIMER_CLOCK_DIV_1MHZ    49

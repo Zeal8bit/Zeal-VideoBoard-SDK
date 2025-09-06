@@ -23,7 +23,7 @@ __asm
     ld a, #ZVB_PERI_TIMER_IDX
     out (_zvb_config_dev_idx), a
     ld a, #1
-    out (_zvb_peri_time_int_st), a
+    out (_zvb_peri_timer_int_st), a
     ld a, #ZVB_PERI_TEXT_IDX
     out (_zvb_config_dev_idx), a
     ld a, #'T'
@@ -36,7 +36,7 @@ __asm
 __endasm;
     /* Acknowledge the interrupt */
     // zvb_map_peripheral(ZVB_PERI_TIMER_IDX);
-    // zvb_peri_time_int_st = 1;
+    // zvb_peri_timer_int_st = 1;
     // zvb_map_peripheral(ZVB_PERI_TEXT_IDX);
     // zvb_peri_text_print_char = 'T';
     // zvb_peri_text_print_char = ' ';
@@ -57,7 +57,7 @@ static void set_interrupt_vector(void) {
 }
 
 
-int main(int argc, char** argv)
+int main(void)
 {
 #if 0
     while (1) {
@@ -83,14 +83,14 @@ int main(int argc, char** argv)
      * Configure each ticks period to 1ms, and the counter to 1000, counting down
      * Divider = 1ms * 50MHz - 1 = 49,999
      */
-    zvb_peri_time_div_lo = (49999 & 0xff);
-    zvb_peri_time_div_hi = (49999 >> 8) & 0xff;
+    zvb_peri_timer_div_lo = (ZVB_PERI_TIMER_CLOCK_DIV_1KHZ & 0xff);
+    zvb_peri_timer_div_hi = (ZVB_PERI_TIMER_CLOCK_DIV_1KHZ >> 8) & 0xff;
 
-    zvb_peri_time_rel_lo = COUNTER & 0xff;
-    zvb_peri_time_rel_hi = (COUNTER >> 8) & 0xff;
+    zvb_peri_timer_rel_lo = COUNTER & 0xff;
+    zvb_peri_timer_rel_hi = (COUNTER >> 8) & 0xff;
 
-    zvb_peri_time_cnt_lo = COUNTER & 0xff;
-    zvb_peri_time_cnt_hi = (COUNTER >> 8) & 0xff;
+    zvb_peri_timer_cnt_lo = COUNTER & 0xff;
+    zvb_peri_timer_cnt_hi = (COUNTER >> 8) & 0xff;
 
     /* Start the timer and schedule interrupts */
     zvb_peri_timer_ctrl = ZVB_PERI_TIMER_CTRL_ENABLE  |
@@ -106,13 +106,13 @@ int main(int argc, char** argv)
     uint8_t i = 0;
     while (1) {
         zvb_map_peripheral(ZVB_PERI_TIMER_IDX);
-        if (zvb_peri_time_int_st) {
+        if (zvb_peri_timer_int_st) {
             /* Get the global interrupt registers */
             uint8_t peri = zvb_ctrl_int_peri;
             uint8_t st   = zvb_ctrl_int_st_clr;
             uint8_t pio  = pio_data_b;
             /* Acknowledge the interrupt */
-            zvb_peri_time_int_st = 1;
+            zvb_peri_timer_int_st = 1;
             printf("%d: %x:%x:%x -> %x:%x:%x\n", i++,
                 peri,
                 st,
