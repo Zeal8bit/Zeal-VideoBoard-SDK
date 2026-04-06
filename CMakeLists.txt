@@ -37,6 +37,10 @@ zvb_add_library(zvb_gfx
     ${GFX_DIR}/tilemap/load.c
     ${GFX_DIR}/tilemap/place.c
     ${GFX_DIR}/tileset/load.c
+    ${GFX_DIR}/tileset/load_1bit.c
+    ${GFX_DIR}/tileset/load_2bit.c
+    ${GFX_DIR}/tileset/load_4bit.c
+    ${GFX_DIR}/tileset/load_rle.c
     ${GFX_DIR}/tileset/add_color_tile.c
     ${GFX_DIR}/sprite/render.c
     ${GFX_DIR}/sprite/render_array.c
@@ -56,6 +60,10 @@ zvb_add_library(zvb
     ${GFX_DIR}/tilemap/load.c
     ${GFX_DIR}/tilemap/place.c
     ${GFX_DIR}/tileset/load.c
+    ${GFX_DIR}/tileset/load_1bit.c
+    ${GFX_DIR}/tileset/load_2bit.c
+    ${GFX_DIR}/tileset/load_4bit.c
+    ${GFX_DIR}/tileset/load_rle.c
     ${GFX_DIR}/tileset/add_color_tile.c
     ${GFX_DIR}/sprite/render.c
     ${GFX_DIR}/sprite/render_array.c

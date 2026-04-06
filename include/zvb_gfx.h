@@ -99,6 +99,26 @@ gfx_error gfx_palette_load(gfx_context* ctx, void* palette, uint16_t size, uint8
  */
 gfx_error gfx_tileset_load(gfx_context* ctx, void* tileset, uint16_t size, const gfx_tileset_options* options);
 
+/**
+ * @brief Load 1-bit-compressed tileset data.
+ */
+gfx_error gfx_tileset_load_1bit(gfx_context* ctx, uint8_t* tileset, uint16_t size, uint16_t from, uint8_t pal_offset);
+
+/**
+ * @brief Load 2-bit-compressed tileset data.
+ */
+gfx_error gfx_tileset_load_2bit(gfx_context* ctx, uint8_t* tileset, uint16_t size, uint16_t from, uint8_t pal_offset, uint8_t opacity);
+
+/**
+ * @brief Load 4-bit-compressed tileset data.
+ */
+gfx_error gfx_tileset_load_4bit(gfx_context* ctx, uint8_t* tileset, uint16_t size, uint16_t from, uint8_t pal_offset, uint8_t opacity);
+
+/**
+ * @brief Load RLE-compressed tileset data.
+ */
+gfx_error gfx_tileset_load_rle(gfx_context* ctx, uint8_t* tileset, uint16_t size, uint16_t from, uint8_t pal_offset, uint8_t opacity);
+
 
 /**
  * @brief Create a tile with a given color
