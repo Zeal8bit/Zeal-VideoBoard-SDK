@@ -11,22 +11,22 @@ void memset_vram(void* ptr, int a, uint16_t size) __naked
     (void) ptr;
     (void) a;
     (void) size;
-__asm
-    ld a, e
-    pop de
-    pop bc
-    push de
-    ld e, a
-    ; BC has the size now
-_memset_vram_loop:
-    ld a, b
-    or c
-    ret z
-    ld (hl), e
-    inc hl
-    dec bc
-    jp _memset_vram_loop
-__endasm;
+    __asm__(
+        "    ld a, e\n"
+        "    pop de\n"
+        "    pop bc\n"
+        "    push de\n"
+        "    ld e, a\n"
+        "    ; BC has the size now\n"
+        "_memset_vram_loop:\n"
+        "    ld a, b\n"
+        "    or c\n"
+        "    ret z\n"
+        "    ld (hl), e\n"
+        "    inc hl\n"
+        "    dec bc\n"
+        "    jp _memset_vram_loop\n"
+    );
 }
 
 gfx_error gfx_initialize(uint8_t mode, gfx_context* out)

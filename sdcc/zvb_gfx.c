@@ -20,6 +20,7 @@
 #include "gfx/tileset/add_color_tile.c"
 #include "gfx/sprite/render.c"
 #include "gfx/sprite/render_array.c"
+#include "gfx/sprite/set_xy.c"
 #include "gfx/sprite/set_x.c"
 #include "gfx/sprite/set_y.c"
 #include "gfx/sprite/set_tile.c"

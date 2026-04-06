@@ -65,6 +65,7 @@ dkms.conf
 
 # CMake build directories
 /build*/
+/debug*/
 [Cc]MakeFiles/
 CMakeCache.txt
 cmake_install.cmake

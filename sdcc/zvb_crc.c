@@ -29,42 +29,42 @@ uint32_t zvb_crc_update(uint8_t *buffer, uint16_t size)  __sdcccall(1)
     (void) buffer;
     (void) size;
     zvb_map_peripheral(ZVB_PERI_CRC_IDX);
-__asm
-    ; Buffer in HL, size in DE
-    ld a, d
-    or e
-    jr z, zvb_crc_update_ret
-    ; Use OTIR instructions to go faster, divide the size in number of 256-byte loops
-    ; Round it up since the loop below will stop when A is 0
-    ld a, d
-    ld b, e
-    ; If B is not 0, A = D+1, else A = D
-    dec b
-    inc b
-    jr z, zvb_crc_update_no_add
-    inc a
-zvb_crc_update_no_add:
-    ; Set C to the DATA IN register
-    ld c, # ZVB_PERI_BASE + 0x1
-zvb_crc_update_loop:
-    otir
-    ; Decrement the number of loops
-    dec a
-    ; On non-zero, continue the loop (B is already 0!)
-    jp nz, zvb_crc_update_loop
-    ; On carry, end of the loop (A was 0 before the sub instruction)
-zvb_crc_update_ret:
-    ; Extract the resulting 32-bit value in HLDE
-    in a, (ZVB_PERI_BASE + 0x4)
-    ld e, a
-    in a, (ZVB_PERI_BASE + 0x5)
-    ld d, a
-    in a, (ZVB_PERI_BASE + 0x6)
-    ld l, a
-    in a, (ZVB_PERI_BASE + 0x7)
-    ld h, a
-    ret
-__endasm;
+    __asm__(
+        "    ; Buffer in HL, size in DE\n"
+        "    ld a, d\n"
+        "    or e\n"
+        "    jr z, zvb_crc_update_ret\n"
+        "    ; Use OTIR instructions to go faster, divide the size in number of 256-byte loops\n"
+        "    ; Round it up since the loop below will stop when A is 0\n"
+        "    ld a, d\n"
+        "    ld b, e\n"
+        "    ; If B is not 0, A = D+1, else A = D\n"
+        "    dec b\n"
+        "    inc b\n"
+        "    jr z, zvb_crc_update_no_add\n"
+        "    inc a\n"
+        "zvb_crc_update_no_add:\n"
+        "    ; Set C to the DATA IN register\n"
+        "    ld c, # ZVB_PERI_BASE + 0x1\n"
+        "zvb_crc_update_loop:\n"
+        "    otir\n"
+        "    ; Decrement the number of loops\n"
+        "    dec a\n"
+        "    ; On non-zero, continue the loop (B is already 0!)\n"
+        "    jp nz, zvb_crc_update_loop\n"
+        "    ; On carry, end of the loop (A was 0 before the sub instruction)\n"
+        "zvb_crc_update_ret:\n"
+        "    ; Extract the resulting 32-bit value in HLDE\n"
+        "    in a, (ZVB_PERI_BASE + 0x4)\n"
+        "    ld e, a\n"
+        "    in a, (ZVB_PERI_BASE + 0x5)\n"
+        "    ld d, a\n"
+        "    in a, (ZVB_PERI_BASE + 0x6)\n"
+        "    ld l, a\n"
+        "    in a, (ZVB_PERI_BASE + 0x7)\n"
+        "    ld h, a\n"
+        "    ret\n"
+    );
     // Unreachable but prevents a warning
     return 0;
 }
