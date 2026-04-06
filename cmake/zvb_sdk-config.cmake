@@ -1,6 +1,6 @@
 # Called by: find_package(ZVB REQUIRED)
 
-set(libraries zvb_crc zvb_dma zvb_gfx zvb_sound)
+set(libraries zvb zvb_crc zvb_dma zvb_gfx zvb_sound)
 
 foreach(lib ${libraries})
     add_library(${lib} INTERFACE IMPORTED)
