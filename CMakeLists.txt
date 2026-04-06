@@ -2,28 +2,54 @@ cmake_minimum_required(VERSION 3.16)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 
+# Input directory for the source files
+set(INPUT_DIR ${CMAKE_SOURCE_DIR}/sdcc)
+set(GFX_DIR ${INPUT_DIR}/gfx)
+
+
 set(ZOS_TOOLCHAIN sdcc)
 include($ENV{ZOS_PATH}/cmake/zos_init.cmake)
 
 project(zvb-sdk-libs C)
 
 # Function to create libraries
-function(zvb_add_library name)
-    add_library(${name} STATIC ${ARGN})
-    target_include_directories(${name} PRIVATE ${CMAKE_SOURCE_DIR}/include)
+function(zvb_add_library target_name)
+    add_library(${target_name} STATIC ${ARGN})
+    target_include_directories(${target_name} PRIVATE ${CMAKE_SOURCE_DIR}/include)
 endfunction()
 
-# Input directory for the source files
-set(INPUT_DIR ${CMAKE_SOURCE_DIR}/sdcc)
-
 # Create each ZVB library
-zvb_add_library(zvb_gfx   ${INPUT_DIR}/zvb_gfx.c)
+zvb_add_library(zvb_gfx
+    ${GFX_DIR}/core.c
+    ${GFX_DIR}/palette.c
+    ${GFX_DIR}/tilemap/load.c
+    ${GFX_DIR}/tilemap/place.c
+    ${GFX_DIR}/tileset/load.c
+    ${GFX_DIR}/tileset/add_color_tile.c
+    ${GFX_DIR}/sprite/render.c
+    ${GFX_DIR}/sprite/render_array.c
+    ${GFX_DIR}/sprite/set_x.c
+    ${GFX_DIR}/sprite/set_y.c
+    ${GFX_DIR}/sprite/set_tile.c
+    ${GFX_DIR}/sprite/set_flags.c
+)
 zvb_add_library(zvb_crc   ${INPUT_DIR}/zvb_crc.c)
 zvb_add_library(zvb_sound ${INPUT_DIR}/zvb_sound.c)
 zvb_add_library(zvb_dma   ${INPUT_DIR}/zvb_dma.c)
 
 zvb_add_library(zvb
-    ${INPUT_DIR}/zvb_gfx.c
+    ${GFX_DIR}/core.c
+    ${GFX_DIR}/palette.c
+    ${GFX_DIR}/tilemap/load.c
+    ${GFX_DIR}/tilemap/place.c
+    ${GFX_DIR}/tileset/load.c
+    ${GFX_DIR}/tileset/add_color_tile.c
+    ${GFX_DIR}/sprite/render.c
+    ${GFX_DIR}/sprite/render_array.c
+    ${GFX_DIR}/sprite/set_x.c
+    ${GFX_DIR}/sprite/set_y.c
+    ${GFX_DIR}/sprite/set_tile.c
+    ${GFX_DIR}/sprite/set_flags.c
     ${INPUT_DIR}/zvb_sound.c
     ${INPUT_DIR}/zvb_crc.c
     ${INPUT_DIR}/zvb_dma.c
