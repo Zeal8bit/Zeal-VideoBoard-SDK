@@ -18,6 +18,18 @@ function(zvb_add_library target_name)
     target_include_directories(${target_name} PRIVATE ${CMAKE_SOURCE_DIR}/include)
 endfunction()
 
+function(zvb_add_symbol_report target_name)
+    set(report_dir ${CMAKE_SOURCE_DIR}/debug)
+    set(report_file ${report_dir}/${target_name}.sym)
+
+    add_custom_command(TARGET ${target_name} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${report_dir}
+        COMMAND /bin/sh -c "sdnm -sS --size-sort '$<TARGET_FILE:${target_name}>' > '${report_file}'"
+        COMMENT "Generating symbol size report: ${report_file}"
+        VERBATIM
+    )
+endfunction()
+
 # Create each ZVB library
 zvb_add_library(zvb_gfx
     ${GFX_DIR}/core.c
@@ -28,6 +40,7 @@ zvb_add_library(zvb_gfx
     ${GFX_DIR}/tileset/add_color_tile.c
     ${GFX_DIR}/sprite/render.c
     ${GFX_DIR}/sprite/render_array.c
+    ${GFX_DIR}/sprite/set_xy.c
     ${GFX_DIR}/sprite/set_x.c
     ${GFX_DIR}/sprite/set_y.c
     ${GFX_DIR}/sprite/set_tile.c
@@ -46,6 +59,7 @@ zvb_add_library(zvb
     ${GFX_DIR}/tileset/add_color_tile.c
     ${GFX_DIR}/sprite/render.c
     ${GFX_DIR}/sprite/render_array.c
+    ${GFX_DIR}/sprite/set_xy.c
     ${GFX_DIR}/sprite/set_x.c
     ${GFX_DIR}/sprite/set_y.c
     ${GFX_DIR}/sprite/set_tile.c
@@ -54,6 +68,8 @@ zvb_add_library(zvb
     ${INPUT_DIR}/zvb_crc.c
     ${INPUT_DIR}/zvb_dma.c
 )
+
+zvb_add_symbol_report(zvb)
 
 # Group target to build all
 add_custom_target(all_libs DEPENDS zvb zvb_gfx zvb_crc zvb_sound zvb_dma)
