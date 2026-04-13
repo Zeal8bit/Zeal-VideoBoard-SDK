@@ -5,6 +5,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 # Input directory for the source files
 set(INPUT_DIR ${CMAKE_SOURCE_DIR}/sdcc)
 set(GFX_DIR ${INPUT_DIR}/gfx)
+set(SOUND_DIR ${INPUT_DIR}/sound)
 
 
 set(ZOS_TOOLCHAIN sdcc)
@@ -51,7 +52,13 @@ zvb_add_library(zvb_gfx
     ${GFX_DIR}/sprite/set_flags.c
 )
 zvb_add_library(zvb_crc   ${INPUT_DIR}/zvb_crc.c)
-zvb_add_library(zvb_sound ${INPUT_DIR}/zvb_sound.c)
+zvb_add_library(zvb_sound
+    ${SOUND_DIR}/core.c
+    ${SOUND_DIR}/voices.c
+    ${SOUND_DIR}/channels.c
+    ${SOUND_DIR}/volume.c
+    ${SOUND_DIR}/samples.c
+)
 zvb_add_library(zvb_dma   ${INPUT_DIR}/zvb_dma.c)
 
 zvb_add_library(zvb
@@ -72,7 +79,11 @@ zvb_add_library(zvb
     ${GFX_DIR}/sprite/set_y.c
     ${GFX_DIR}/sprite/set_tile.c
     ${GFX_DIR}/sprite/set_flags.c
-    ${INPUT_DIR}/zvb_sound.c
+    ${SOUND_DIR}/core.c
+    ${SOUND_DIR}/voices.c
+    ${SOUND_DIR}/channels.c
+    ${SOUND_DIR}/volume.c
+    ${SOUND_DIR}/samples.c
     ${INPUT_DIR}/zvb_crc.c
     ${INPUT_DIR}/zvb_dma.c
 )
