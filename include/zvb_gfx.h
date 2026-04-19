@@ -55,6 +55,9 @@ typedef struct {
     uint8_t opacity;
 } gfx_tileset_options;
 
+/************************
+ * INITIALIZE
+ ************************/
 
 /**
  * @brief Initialize graphics with the given mode and virtual page to use
@@ -64,6 +67,9 @@ typedef struct {
  */
 gfx_error gfx_initialize(uint8_t mode, gfx_context* out);
 
+/************************
+ * SCREEN
+ ************************/
 
 /**
  * @brief Enable or disable the screen
@@ -72,6 +78,9 @@ gfx_error gfx_initialize(uint8_t mode, gfx_context* out);
  */
 void gfx_enable_screen(uint8_t ena);
 
+/************************
+ * PALETTE
+ ************************/
 
 /**
  * @brief Load a (part of) color palette in video memory.
@@ -86,6 +95,9 @@ void gfx_enable_screen(uint8_t ena);
 gfx_error gfx_palette_load(gfx_context* ctx, void* palette, uint16_t size, uint8_t from);
 
 
+/************************
+ * TILESET
+ ************************/
 /**
  * @brief Load a tileset into video memory
  *
@@ -100,12 +112,33 @@ gfx_error gfx_palette_load(gfx_context* ctx, void* palette, uint16_t size, uint8
 gfx_error gfx_tileset_load(gfx_context* ctx, void* tileset, uint16_t size, const gfx_tileset_options* options);
 
 /**
+ * @brief Load raw/uncompressed tileset data.
+ *
+ * @param context Graphics context, must be initialized
+ * @param tileset Address of the bytes/tileset to load in video memory
+ * @param size Size of the tileset array, in bytes
+ * @param options Option structure to give more info about the tileset. Can be NULL for raw tileset.
+ */
+gfx_error gfx_tileset_load_none(gfx_context* ctx, uint8_t* tileset, uint16_t size, uint16_t from, uint8_t pal_offset, uint8_t opacity);
+
+
+/**
  * @brief Load 1-bit-compressed tileset data.
+ *
+ * @param context Graphics context, must be initialized
+ * @param tileset Address of the bytes/tileset to load in video memory
+ * @param size Size of the tileset array, in bytes
+ * @param options Option structure to give more info about the tileset. Can be NULL for raw tileset.
  */
 gfx_error gfx_tileset_load_1bit(gfx_context* ctx, uint8_t* tileset, uint16_t size, uint16_t from, uint8_t pal_offset);
 
 /**
  * @brief Load 2-bit-compressed tileset data.
+ *
+ * @param context Graphics context, must be initialized
+ * @param tileset Address of the bytes/tileset to load in video memory
+ * @param size Size of the tileset array, in bytes
+ * @param options Option structure to give more info about the tileset. Can be NULL for raw tileset.
  */
 gfx_error gfx_tileset_load_2bit(gfx_context* ctx, uint8_t* tileset, uint16_t size, uint16_t from, uint8_t pal_offset, uint8_t opacity);
 
@@ -116,9 +149,17 @@ gfx_error gfx_tileset_load_4bit(gfx_context* ctx, uint8_t* tileset, uint16_t siz
 
 /**
  * @brief Load RLE-compressed tileset data.
+ *
+ * @param context Graphics context, must be initialized
+ * @param tileset Address of the bytes/tileset to load in video memory
+ * @param size Size of the tileset array, in bytes
+ * @param options Option structure to give more info about the tileset. Can be NULL for raw tileset.
  */
 gfx_error gfx_tileset_load_rle(gfx_context* ctx, uint8_t* tileset, uint16_t size, uint16_t from, uint8_t pal_offset, uint8_t opacity);
 
+/************************
+ * TILEMAP
+ ************************/
 
 /**
  * @brief Create a tile with a given color
@@ -157,6 +198,9 @@ gfx_error gfx_tilemap_load(gfx_context* ctx, void* tiles, uint8_t size, uint8_t 
  */
 gfx_error gfx_tilemap_place(gfx_context* ctx, uint8_t tile, uint8_t layer, uint8_t x, uint8_t y);
 
+/************************
+ * VBLANK/VSYNC
+ ************************/
 
 /**
  * @brief Wait until the screen in a v-blank state
