@@ -10,7 +10,9 @@
 #include <stdint.h>
 #include <string.h>
 
+#define ZVB_GFX_DISABLE_TILESET_LOAD_MACROS
 #include "zvb_gfx.h"
+#undef ZVB_GFX_DISABLE_TILESET_LOAD_MACROS
 
 /**
  * @brief VRAM will be mapped in page 0, which starts at address 0.

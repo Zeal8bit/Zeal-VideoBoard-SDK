@@ -27,9 +27,6 @@ static void memaddcpy(uint8_t* dst, uint8_t* src, size_t size, uint8_t opacity, 
 gfx_error gfx_tileset_load_none(gfx_context* ctx, uint8_t* tileset, uint16_t size, uint16_t from, uint8_t pal_offset, uint8_t opacity)
 {
     uint8_t* vram_tileset = (uint8_t*) VRAM_VIRT_ADDR;
-    // const uint16_t from = options ? options->from_byte : 0;
-    // const uint8_t pal_offset = options ? options->pal_offset : 0;
-    // const uint8_t opacity = options ? options->opacity : 0;
 
     uint8_t page       = from / (16 * 1024);
     uint16_t from_byte = from % (16 * 1024);
