@@ -38,13 +38,7 @@ gfx_error gfx_tileset_load_rle(gfx_context* ctx, uint8_t* tileset, uint16_t size
         }
 
         if (j >= TILE_SIZE_8BIT) {
-            gfx_tileset_options options = {
-                .compression = TILESET_COMP_NONE,
-                .from_byte = from + (tile_count * TILE_SIZE_8BIT),
-                .pal_offset = pal_offset,
-                .opacity = opacity,
-            };
-            gfx_tileset_load(ctx, &buffer, TILE_SIZE_8BIT, &options);
+            gfx_tileset_load_none(ctx, buffer, TILE_SIZE_8BIT, from + (tile_count * TILE_SIZE_8BIT), pal_offset, opacity);
             tile_count++;
             j = 0;
         }
