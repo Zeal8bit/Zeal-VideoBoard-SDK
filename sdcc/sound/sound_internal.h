@@ -14,7 +14,4 @@
 
 extern uint8_t zvb_sound_master_hold;
 
-static inline void zvb_sound_map(void)
-{
-    zvb_map_peripheral(ZVB_PERI_SOUND_IDX);
-}
+#define zvb_sound_map() zvb_map_peripheral(ZVB_PERI_SOUND_IDX)
