@@ -68,7 +68,7 @@ function(gif2zeal target)
 
         # Build the Python command as a proper list
         set(cmd ${Python3_EXECUTABLE} $ENV{ZVB_SDK_PATH}/tools/zeal2gif/gif2zeal.py)
-        list(APPEND cmd -i ${build_out_dir}/${fname_we}.gif)
+        list(APPEND cmd -i ${gif_abs})
         list(APPEND cmd -t ${zts} -p ${ztp})
         if(DEFINED ztm)
             list(APPEND cmd -m ${ztm})
@@ -79,7 +79,6 @@ function(gif2zeal target)
         add_custom_command(
             OUTPUT ${zts} ${ztp} $<$<BOOL:${ztm}>:${ztm}>
             COMMAND ${CMAKE_COMMAND} -E make_directory ${build_out_dir}
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${gif_abs} ${build_out_dir}/${fname_we}.gif
             COMMAND ${cmd}
             DEPENDS ${gif_abs} $ENV{ZVB_SDK_PATH}/tools/zeal2gif/gif2zeal.py
             COMMENT "Processing asset ${fname_we}.gif"
@@ -106,7 +105,7 @@ function(tiled2zeal target)
 
     # Parse arguments
     set(_FLAGS COMPRESSED VERBOSE DEBUG)
-    set(_KEYS LAYER SIZE)
+    set(_KEYS LAYER SIZE OUTPUT)
 
     cmake_parse_arguments(
         TILED2ZEAL
@@ -135,34 +134,51 @@ function(tiled2zeal target)
 
 
     set(GENERATED_ASSETS)
+    if(TILED2ZEAL_OUTPUT)
+        list(LENGTH TILED2ZEAL_FILES tiled2zeal_file_count)
+        if(tiled2zeal_file_count GREATER 1)
+            message(FATAL_ERROR "tiled2zeal OUTPUT can only be used with one TMX file")
+        endif()
+    endif()
+
     foreach(tmx ${TILED2ZEAL_FILES})
         get_filename_component(fname_we ${tmx} NAME_WE)
         get_filename_component(tmx_abs ${tmx} ABSOLUTE)
+        string(REPLACE "." "_" fname_safe ${fname_we})
 
-        # Output file relative to build directory for SDCC incbin
-        set(build_out_dir ${CMAKE_BINARY_DIR}/assets)
-        set(ztm ${build_out_dir}/${fname_we}.ztm)
+        if(TILED2ZEAL_OUTPUT)
+            if(IS_ABSOLUTE "${TILED2ZEAL_OUTPUT}")
+                set(output_path "${TILED2ZEAL_OUTPUT}")
+            else()
+                set(output_path "${CMAKE_BINARY_DIR}/${TILED2ZEAL_OUTPUT}")
+            endif()
+        else()
+            set(output_path "${CMAKE_BINARY_DIR}/assets/${fname_we}.ztm")
+        endif()
+
+        get_filename_component(build_out_dir "${output_path}" DIRECTORY)
+        set(stamp ${CMAKE_BINARY_DIR}/CMakeFiles/${target}_${fname_safe}_tiled_asset.stamp)
 
         # Make a unique target name based on TMX filename
-        string(REPLACE "." "_" fname_safe ${fname_we})
         set(custom_target_name "${target}_${fname_safe}_tiled_asset")
 
         add_custom_command(
-            OUTPUT ${ztm}
+            OUTPUT ${stamp}
             COMMAND ${CMAKE_COMMAND} -E make_directory ${build_out_dir}
             COMMAND ${Python3_EXECUTABLE} $ENV{ZVB_SDK_PATH}/tools/tiled2zeal/tiled2zeal.py
                     -i ${tmx_abs}
-                    -o ${build_out_dir}
+                    -o ${output_path}
                     ${extra_args_list}
+            COMMAND ${CMAKE_COMMAND} -E touch ${stamp}
             DEPENDS ${tmx_abs} $ENV{ZVB_SDK_PATH}/tools/tiled2zeal/tiled2zeal.py
             COMMENT "Processing TMX asset ${fname_we}.tmx"
             VERBATIM
         )
 
-        list(APPEND GENERATED_ASSETS ${ztm})
+        list(APPEND GENERATED_ASSETS ${stamp})
 
         # Per-file custom target
-        add_custom_target(${custom_target_name} ALL DEPENDS ${ztm})
+        add_custom_target(${custom_target_name} ALL DEPENDS ${stamp})
         add_dependencies(${target_name} ${custom_target_name})
     endforeach()
 endfunction()
