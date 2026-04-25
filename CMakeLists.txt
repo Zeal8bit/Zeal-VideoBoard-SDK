@@ -22,21 +22,21 @@ file(GLOB SOUND_SOURCES CONFIGURE_DEPENDS
 )
 list(SORT SOUND_SOURCES)
 
-file(GLOB CRC_SOURCES CONFIGURE_DEPENDS
-    ${CRC_DIR}/zvb_crc.c
+set(CRC_SOURCES
+    ${CRC_DIR}/zvb_crc.asm
+    # ${CRC_DIR}/zvb_crc.c
 )
-list(SORT CRC_SOURCES)
 
-file(GLOB DMA_SOURCES CONFIGURE_DEPENDS
-    ${DMA_DIR}/zvb_dma.c
+set(DMA_SOURCES
+    ${DMA_DIR}/zvb_dma.asm
+    # ${DMA_DIR}/zvb_dma.c
 )
-list(SORT DMA_SOURCES)
 
 
 set(ZOS_TOOLCHAIN sdcc)
 include($ENV{ZOS_PATH}/cmake/zos_init.cmake)
 
-project(zvb-sdk-libs C)
+project(zvb-sdk-libs C ASM)
 
 # Function to create libraries
 function(zvb_add_library target_name)
