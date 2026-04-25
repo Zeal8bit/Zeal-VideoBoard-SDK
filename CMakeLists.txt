@@ -6,6 +6,31 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(INPUT_DIR ${CMAKE_SOURCE_DIR}/sdcc)
 set(GFX_DIR ${INPUT_DIR}/gfx)
 set(SOUND_DIR ${INPUT_DIR}/sound)
+set(CRC_DIR ${INPUT_DIR})
+set(DMA_DIR ${INPUT_DIR})
+
+file(GLOB GFX_SOURCES CONFIGURE_DEPENDS
+    ${GFX_DIR}/*.c
+    ${GFX_DIR}/tilemap/*.c
+    ${GFX_DIR}/tileset/*.c
+    ${GFX_DIR}/sprite/*.c
+)
+list(SORT GFX_SOURCES)
+
+file(GLOB SOUND_SOURCES CONFIGURE_DEPENDS
+    ${SOUND_DIR}/*.c
+)
+list(SORT SOUND_SOURCES)
+
+file(GLOB CRC_SOURCES CONFIGURE_DEPENDS
+    ${CRC_DIR}/zvb_crc.c
+)
+list(SORT CRC_SOURCES)
+
+file(GLOB DMA_SOURCES CONFIGURE_DEPENDS
+    ${DMA_DIR}/zvb_dma.c
+)
+list(SORT DMA_SOURCES)
 
 
 set(ZOS_TOOLCHAIN sdcc)
@@ -32,62 +57,16 @@ function(zvb_add_symbol_report target_name)
 endfunction()
 
 # Create each ZVB library
-zvb_add_library(zvb_gfx
-    ${GFX_DIR}/core.c
-    ${GFX_DIR}/palette.c
-    ${GFX_DIR}/tilemap/load.c
-    ${GFX_DIR}/tilemap/place.c
-    ${GFX_DIR}/tileset/load.c
-    ${GFX_DIR}/tileset/load_none.c
-    ${GFX_DIR}/tileset/load_1bit.c
-    ${GFX_DIR}/tileset/load_2bit.c
-    ${GFX_DIR}/tileset/load_4bit.c
-    ${GFX_DIR}/tileset/load_rle.c
-    ${GFX_DIR}/tileset/add_color_tile.c
-    ${GFX_DIR}/sprite/render.c
-    ${GFX_DIR}/sprite/render_array.c
-    ${GFX_DIR}/sprite/set_xy.c
-    ${GFX_DIR}/sprite/set_x.c
-    ${GFX_DIR}/sprite/set_y.c
-    ${GFX_DIR}/sprite/set_tile.c
-    ${GFX_DIR}/sprite/set_flags.c
-)
-zvb_add_library(zvb_crc   ${INPUT_DIR}/zvb_crc.c)
-zvb_add_library(zvb_sound
-    ${SOUND_DIR}/core.c
-    ${SOUND_DIR}/voices.c
-    ${SOUND_DIR}/channels.c
-    ${SOUND_DIR}/volume.c
-    ${SOUND_DIR}/samples.c
-)
-zvb_add_library(zvb_dma   ${INPUT_DIR}/zvb_dma.c)
+zvb_add_library(zvb_gfx ${GFX_SOURCES})
+zvb_add_library(zvb_crc   ${CRC_SOURCES})
+zvb_add_library(zvb_sound ${SOUND_SOURCES})
+zvb_add_library(zvb_dma   ${DMA_SOURCES})
 
 zvb_add_library(zvb
-    ${GFX_DIR}/core.c
-    ${GFX_DIR}/palette.c
-    ${GFX_DIR}/tilemap/load.c
-    ${GFX_DIR}/tilemap/place.c
-    ${GFX_DIR}/tileset/load.c
-    ${GFX_DIR}/tileset/load_none.c
-    ${GFX_DIR}/tileset/load_1bit.c
-    ${GFX_DIR}/tileset/load_2bit.c
-    ${GFX_DIR}/tileset/load_4bit.c
-    ${GFX_DIR}/tileset/load_rle.c
-    ${GFX_DIR}/tileset/add_color_tile.c
-    ${GFX_DIR}/sprite/render.c
-    ${GFX_DIR}/sprite/render_array.c
-    ${GFX_DIR}/sprite/set_xy.c
-    ${GFX_DIR}/sprite/set_x.c
-    ${GFX_DIR}/sprite/set_y.c
-    ${GFX_DIR}/sprite/set_tile.c
-    ${GFX_DIR}/sprite/set_flags.c
-    ${SOUND_DIR}/core.c
-    ${SOUND_DIR}/voices.c
-    ${SOUND_DIR}/channels.c
-    ${SOUND_DIR}/volume.c
-    ${SOUND_DIR}/samples.c
-    ${INPUT_DIR}/zvb_crc.c
-    ${INPUT_DIR}/zvb_dma.c
+    ${GFX_SOURCES}
+    ${SOUND_SOURCES}
+    ${CRC_SOURCES}
+    ${DMA_SOURCES}
 )
 
 zvb_add_symbol_report(zvb)
