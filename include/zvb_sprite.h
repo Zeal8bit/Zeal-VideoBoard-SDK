@@ -92,6 +92,12 @@ gfx_error gfx_sprite_render_array(gfx_context* ctx, uint8_t from_idx, const gfx_
 
 
 /**
+ * @brief Set both X and Y coordinates for the given sprite in a single call.
+ */
+gfx_error gfx_sprite_set_xy(gfx_context* ctx, uint8_t sprite_idx, uint16_t x, uint16_t y);
+
+
+/**
  * @brief Set the X coordinate for the given sprite
  */
 gfx_error gfx_sprite_set_x(gfx_context* ctx, uint8_t sprite_idx, uint16_t x);
