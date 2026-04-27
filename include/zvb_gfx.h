@@ -1,5 +1,5 @@
 /**
- * SPDX-FileCopyrightText: 2024 Zeal 8-bit Computer <contact@zeal8bit.com>
+ * SPDX-FileCopyrightText: 2024-2026 Zeal 8-bit Computer <contact@zeal8bit.com>
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -171,93 +171,6 @@ gfx_error gfx_tileset_load_4bit(gfx_context* ctx, uint8_t* tileset, uint16_t siz
  */
 gfx_error gfx_tileset_load_rle(gfx_context* ctx, uint8_t* tileset, uint16_t size, uint16_t from, uint8_t pal_offset, uint8_t opacity);
 
-#if !defined(ZVB_GFX_DISABLE_TILESET_LOAD_MACROS) && defined(TILESET_LOAD_COMPAT) && (TILESET_LOAD_COMPAT == 1)
-/**
- * @brief TILESET_LOAD_COMPAT wrapper mode.
- *
- * - User enables by defining TILESET_LOAD_COMPAT to 1 before including this header.
- * - Wrapper macros let specific loaders accept (ctx, tileset, size, options_ptr).
- * - options_ptr must be non-NULL in wrapper mode.
- * - If NULL options behavior is required, call gfx_tileset_load() instead.
- *
- * ZVB_GFX_DISABLE_TILESET_LOAD_MACROS:
- * - Internal SDK escape hatch to prevent wrapper macro substitution.
- * - Useful when global compile flags define TILESET_LOAD_COMPAT for all units.
- */
-/**
- * @brief Extract from-byte value from a non-NULL options pointer.
- *
- * @param options Pointer to gfx_tileset_options (must be non-NULL).
- */
-#define _GFX_TILESET_OPT_FROM(options)       ((options)->from_byte)
-/**
- * @brief Extract palette offset from a non-NULL options pointer.
- *
- * @param options Pointer to gfx_tileset_options (must be non-NULL).
- */
-#define _GFX_TILESET_OPT_PAL_OFFSET(options) ((options)->pal_offset)
-/**
- * @brief Extract opacity flag from a non-NULL options pointer.
- *
- * @param options Pointer to gfx_tileset_options (must be non-NULL).
- */
-#define _GFX_TILESET_OPT_OPACITY(options)    ((options)->opacity)
-
-/**
- * @brief Load raw/uncompressed tileset data (compat wrapper macro).
- *
- * @param ctx Graphics context, must be initialized
- * @param tileset Address of the bytes/tileset to load in video memory
- * @param size Size of the tileset array, in bytes
- * @param options Option structure pointer (must be non-NULL in compat mode)
- */
-#define gfx_tileset_load_none(ctx, tileset, size, options) \
-    gfx_tileset_load_none((ctx), (tileset), (size), _GFX_TILESET_OPT_FROM(options), _GFX_TILESET_OPT_PAL_OFFSET(options), _GFX_TILESET_OPT_OPACITY(options))
-
-/**
- * @brief Load 1-bit-compressed tileset data (compat wrapper macro).
- *
- * @param ctx Graphics context, must be initialized
- * @param tileset Address of the bytes/tileset to load in video memory
- * @param size Size of the tileset array, in bytes
- * @param options Option structure pointer (must be non-NULL in compat mode)
- */
-#define gfx_tileset_load_1bit(ctx, tileset, size, options) \
-    gfx_tileset_load_1bit((ctx), (tileset), (size), _GFX_TILESET_OPT_FROM(options), _GFX_TILESET_OPT_PAL_OFFSET(options))
-
-/**
- * @brief Load 2-bit-compressed tileset data (compat wrapper macro).
- *
- * @param ctx Graphics context, must be initialized
- * @param tileset Address of the bytes/tileset to load in video memory
- * @param size Size of the tileset array, in bytes
- * @param options Option structure pointer (must be non-NULL in compat mode)
- */
-#define gfx_tileset_load_2bit(ctx, tileset, size, options) \
-    gfx_tileset_load_2bit((ctx), (tileset), (size), _GFX_TILESET_OPT_FROM(options), _GFX_TILESET_OPT_PAL_OFFSET(options), _GFX_TILESET_OPT_OPACITY(options))
-
-/**
- * @brief Load 4-bit-compressed tileset data (compat wrapper macro).
- *
- * @param ctx Graphics context, must be initialized
- * @param tileset Address of the bytes/tileset to load in video memory
- * @param size Size of the tileset array, in bytes
- * @param options Option structure pointer (must be non-NULL in compat mode)
- */
-#define gfx_tileset_load_4bit(ctx, tileset, size, options) \
-    gfx_tileset_load_4bit((ctx), (tileset), (size), _GFX_TILESET_OPT_FROM(options), _GFX_TILESET_OPT_PAL_OFFSET(options), _GFX_TILESET_OPT_OPACITY(options))
-
-/**
- * @brief Load RLE-compressed tileset data (compat wrapper macro).
- *
- * @param ctx Graphics context, must be initialized
- * @param tileset Address of the bytes/tileset to load in video memory
- * @param size Size of the tileset array, in bytes
- * @param options Option structure pointer (must be non-NULL in compat mode)
- */
-#define gfx_tileset_load_rle(ctx, tileset, size, options) \
-    gfx_tileset_load_rle((ctx), (tileset), (size), _GFX_TILESET_OPT_FROM(options), _GFX_TILESET_OPT_PAL_OFFSET(options), _GFX_TILESET_OPT_OPACITY(options))
-#endif
 
 /************************
  * TILEMAP

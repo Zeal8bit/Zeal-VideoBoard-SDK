@@ -1,5 +1,5 @@
 /**
- * SPDX-FileCopyrightText: 2024 Zeal 8-bit Computer <contact@zeal8bit.com>
+ * SPDX-FileCopyrightText: 2024-2026 Zeal 8-bit Computer <contact@zeal8bit.com>
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -47,7 +47,8 @@ void zvb_sound_play_samples(sound_samples_conf_t* config, void* samples, uint16_
     zvb_peri_sound_sample_div = config->divider;
 
     /* Unhold sample table if it is held */
-    zvb_peri_sound_hold = zvb_sound_master_hold & ~SAMPTAB;
+    uint8_t hold = zvb_peri_sound_hold;
+    zvb_peri_sound_hold = hold & ~SAMPTAB;
 
     /* Play all the samples */
     data = (uint8_t*) samples;
@@ -62,5 +63,5 @@ void zvb_sound_play_samples(sound_samples_conf_t* config, void* samples, uint16_
     /* Make sure all the samples have been played */
     zvb_sound_wait_empty();
 
-    zvb_peri_sound_hold = zvb_sound_master_hold;
+    zvb_peri_sound_hold = hold;
 }

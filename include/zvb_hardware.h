@@ -56,7 +56,7 @@ IOB(ZVB_CONFIG_BASE + 0xf) zvb_config_phys_addr;    // Physical address start of
  *
  * @param periph Peripheral index, should be any ZVB_PERI_*_IDX macro
  */
-#define zvb_map_peripheral(periph) zvb_config_dev_idx = periph
+#define zvb_map_peripheral(periph) do { zvb_config_dev_idx = (periph); } while(0)
 
 /*****************************************************************************/
 
