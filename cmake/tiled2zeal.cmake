@@ -82,7 +82,7 @@ function(tiled2zeal target)
         set(custom_target_name "${target}_${fname_safe}_tiled_asset")
 
         add_custom_command(
-            OUTPUT ${stamp}
+            OUTPUT ${stamp} ${output_path}
             COMMAND ${CMAKE_COMMAND} -E make_directory ${build_out_dir}
             COMMAND ${Python3_EXECUTABLE} $ENV{ZVB_SDK_PATH}/tools/tiled2zeal/tiled2zeal.py
                     -i ${tmx_abs}
