@@ -13,7 +13,7 @@ parser.add_argument("-t","--tileset", help="Zeal Tileset (ZTS)", required=True)
 parser.add_argument("-p", "--palette", help="Zeal Palette (ZTP)", required=True)
 parser.add_argument("-o", "--output", help="Output GIF Filename")
 parser.add_argument("-b", "--bpp", help="Bits Per Pixel", type=int, default=8, choices=[1,2,4,8])
-parser.add_argument("-z", "--compressed", help="Decompress RLE", action="store_true")
+parser.add_argument("-z", "--compressed", help="Decompress tile data; defaults to rle when no mode is provided", nargs="?", choices=["rle", "lz"], const="rle", default=None)
 parser.add_argument("-s", "--show", help="Open in Viewer", action="store_true")
 parser.add_argument("-v", "--verbose", help="Verbose output", action='store_true')
 parser.add_argument("-d", "--debug", help="Debug output", action='store_true')
@@ -139,14 +139,62 @@ def decompress(data):
 
   return bytes(ret)
 
+def decompress_lz(data):
+  result = []
+  i = 0
+  buffer = [0] * 256
+  position = 0
+
+  while i < len(data):
+    tile_output = 0
+    while tile_output < 256 and i < len(data):
+      byte = data[i]
+      i += 1
+      token_type = byte & 0xc0
+
+      if token_type == 0x00:
+        buffer[position] = byte & 0x3f
+        position = (position + 1) & 0xff
+        tile_output += 1
+      elif token_type == 0x40:
+        count = (byte & 0x3f) + 1
+        for _ in range(count):
+          if i >= len(data) or tile_output >= 256:
+            break
+          buffer[position] = data[i]
+          i += 1
+          position = (position + 1) & 0xff
+          tile_output += 1
+      elif token_type == 0x80:
+        length = ((byte & 0x30) >> 4) + 3
+        offset = (byte & 0x0f) + 1
+        for _ in range(length):
+          buffer[position] = buffer[(position - offset) & 0xff]
+          position = (position + 1) & 0xff
+          tile_output += 1
+      else:
+        length = (byte & 0x3f) + 4
+        offset = data[i] + 1
+        i += 1
+        for _ in range(length):
+          buffer[position] = buffer[(position - offset) & 0xff]
+          position = (position + 1) & 0xff
+          tile_output += 1
+
+    result.extend(buffer if tile_output == 256 else buffer[:tile_output])
+
+  return bytes(result)
+
 def convert(args):
   palette = getPalette(args.palette)
 
   data = None
   with open(args.tileset, mode="rb") as f:
     data = f.read()
-    if(args.compressed):
+    if args.compressed == "rle":
       data = decompress(data)
+    elif args.compressed == "lz":
+      data = decompress_lz(data)
     data = io.BytesIO(data)
 
   tiles = []

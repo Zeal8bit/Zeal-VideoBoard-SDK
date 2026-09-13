@@ -21,6 +21,7 @@
 #include "gfx/tileset/load_2bit.c"
 #include "gfx/tileset/load_4bit.c"
 #include "gfx/tileset/load_rle.c"
+#include "gfx/tileset/load_lz.c"
 #include "gfx/tileset/add_color_tile.c"
 #include "gfx/sprite/render.c"
 #include "gfx/sprite/render_array.c"

@@ -21,6 +21,7 @@ typedef uint8_t gfx_error;
 #define TILESET_COMP_4BIT   2
 #define TILESET_COMP_2BIT   3
 #define TILESET_COMP_RLE    16
+#define TILESET_COMP_LZ     17
 
 
 /**
@@ -170,6 +171,18 @@ gfx_error gfx_tileset_load_4bit(gfx_context* ctx, uint8_t* tileset, uint16_t siz
  * @param opacity Enable transparency behavior for zero-valued pixels
  */
 gfx_error gfx_tileset_load_rle(gfx_context* ctx, uint8_t* tileset, uint16_t size, uint16_t from, uint8_t pal_offset, uint8_t opacity);
+
+/**
+ * @brief Load LZ-compressed tileset data.
+ *
+ * @param ctx Graphics context, must be initialized
+ * @param tileset Address of the bytes/tileset to load in video memory
+ * @param size Size of the tileset array, in bytes
+ * @param from Byte offset in tileset VRAM where data is loaded
+ * @param pal_offset Palette offset added to decompressed pixels
+ * @param opacity Enable transparency behavior for zero-valued pixels
+ */
+gfx_error gfx_tileset_load_lz(gfx_context* ctx, uint8_t* tileset, uint16_t size, uint16_t from, uint8_t pal_offset, uint8_t opacity);
 
 
 /************************

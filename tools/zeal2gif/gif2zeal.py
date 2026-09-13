@@ -14,7 +14,7 @@ parser.add_argument("-p", "--palette", help="Zeal Palette (ZTP)")
 parser.add_argument("-m", "--tilemap", help="Zeal Tilemap (ZTM)")
 parser.add_argument("-o", "--output", help="Output path, can be just a path")
 parser.add_argument("-b", "--bpp", help="Bits Per Pixel", type=int, default=8, choices=[1,2,4,8])
-parser.add_argument("-z", "--compress", help="Compress with RLE", action="store_true")
+parser.add_argument("-z", "--compress", help="Compress tile data; defaults to rle when no mode is provided", nargs="?", choices=["rle", "lz"], const="rle", default=None)
 parser.add_argument("-s", "--strip", help="Strip N tiles off the end", type=int, default=0)
 parser.add_argument("-c", "--colors", help="Max Colors in Palette", type=int, default=None)
 parser.add_argument("-u", "--unique", help="Remove duplicate tiles", action='store_true')
@@ -139,6 +139,52 @@ def compress(tile: list):
 
   return ret
 
+def _lz_find_match(data, pos):
+  best_len = 0
+  best_off = 0
+  search_start = max(0, pos - 256)
+  max_len = min(67, len(data) - pos)
+
+  for start in range(search_start, pos):
+    offset = pos - start
+    length = 0
+    while length < max_len and data[pos + length] == data[start + (length % offset)]:
+      length += 1
+    if length > best_len:
+      best_len = length
+      best_off = offset
+
+  return best_len, best_off
+
+def compress_lz(tile: list) -> list:
+  ret = []
+  i = 0
+
+  while i < len(tile):
+    best_len, best_off = _lz_find_match(tile, i)
+
+    if best_len >= 3 and best_off <= 16 and best_len <= 6:
+      ret.append(0x80 | ((best_len - 3) << 4) | (best_off - 1))
+      i += best_len
+    elif best_len >= 4:
+      ret.append(0xc0 | (min(best_len, 67) - 4))
+      ret.append(best_off - 1)
+      i += min(best_len, 67)
+    elif tile[i] <= 0x3f:
+      ret.append(tile[i])
+      i += 1
+    else:
+      run = []
+      while i < len(tile) and len(run) < 64:
+        if run and (tile[i] <= 0x3f):
+          break
+        run.append(tile[i])
+        i += 1
+      ret.append(0x40 | (len(run) - 1))
+      ret.extend(run)
+
+  return ret
+
 def convert(args):
   gif = Image.open(args.input)
   palette = getPalette(args, gif)
@@ -222,9 +268,12 @@ def convert(args):
       print("tilemap size", len(tilemap))
 
   output = [] # final list of pixel bytes
-  if(args.compress):
+  if args.compress == "rle":
     for tile in final_tiles:
       output += compress(tile)
+  elif args.compress == "lz":
+    for tile in final_tiles:
+      output += compress_lz(tile)
   else:
     for tile in final_tiles:
       output += tile
@@ -272,8 +321,12 @@ def parse_filename_flags(args):
         h2 = flags[i+2]
         colors = int(h1 + h2, 16)
         i += 2
-      case 'Z': # compress
-        compress = True
+      case 'Z': # compress, default to rle
+        compress = "rle"
+      case 'R': # RLE compress
+        compress = "rle"
+      case 'L': # LZ compress
+        compress = "lz"
       case 'S': # strip
         h1 = flags[i+1]
         h2 = flags[i+2]

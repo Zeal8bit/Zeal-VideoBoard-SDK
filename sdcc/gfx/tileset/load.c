@@ -28,6 +28,8 @@ gfx_error gfx_tileset_load(gfx_context* ctx, void* tileset, uint16_t size, const
         return gfx_tileset_load_4bit(ctx, (uint8_t*) tileset, size, from, pal_offset, opacity);
     case TILESET_COMP_RLE:
         return gfx_tileset_load_rle(ctx, (uint8_t*) tileset, size, from, pal_offset, opacity);
+    case TILESET_COMP_LZ:
+        return gfx_tileset_load_lz(ctx, (uint8_t*) tileset, size, from, pal_offset, opacity);
     }
     return GFX_SUCCESS;
 }
