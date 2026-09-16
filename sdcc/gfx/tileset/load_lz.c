@@ -22,24 +22,26 @@ gfx_error gfx_tileset_load_lz(gfx_context* ctx, uint8_t* tileset, uint16_t size,
         const uint8_t type = byte & 0xc0;
 
         if (type == 0x00) {
-            buffer[j++] = byte & 0x3f;
+            buffer[(uint8_t)j] = byte & 0x3f;
+            j++;
         } else if (type == 0x40) {
             uint8_t count = (byte & 0x3f) + 1;
             while (count-- && i < size) {
-                buffer[j++] = tileset[i++];
+                buffer[(uint8_t)j] = tileset[i++];
+                j++;
             }
         } else if (type == 0x80) {
             const uint8_t length = ((byte & 0x30) >> 4) + 3;
             const uint8_t offset = (byte & 0x0f) + 1;
             for (uint8_t k = 0; k < length; k++) {
-                buffer[j] = buffer[(uint8_t) (j - offset)];
+                buffer[(uint8_t)j] = buffer[(uint8_t) (j - offset)];
                 j++;
             }
         } else {
             const uint8_t length = (byte & 0x3f) + 4;
             const uint8_t offset = tileset[i++] + 1;
             for (uint8_t k = 0; k < length; k++) {
-                buffer[j] = buffer[(uint8_t) (j - offset)];
+                buffer[(uint8_t)j] = buffer[(uint8_t) (j - offset)];
                 j++;
             }
         }
