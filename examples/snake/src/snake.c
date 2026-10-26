@@ -187,30 +187,30 @@ static void init(void) {
     if (err) exit(1);
 
     /* Load the tilesets */
-    extern uint8_t _snake_tileset_end;
-    extern uint8_t _snake_tileset_start;
-    const size_t tileset_size = &_snake_tileset_end - &_snake_tileset_start;
+    extern uint8_t _snake_tileset_zts_end;
+    extern uint8_t _snake_tileset_zts_start;
+    const size_t tileset_size = &_snake_tileset_zts_end - &_snake_tileset_zts_start;
     gfx_tileset_options options = {
         .compression = TILESET_COMP_NONE,
     };
-    err = gfx_tileset_load(&vctx, &_snake_tileset_start, tileset_size, &options);
+    err = gfx_tileset_load(&vctx, &_snake_tileset_zts_start, tileset_size, &options);
     if (err) exit(1);
 
-    extern uint8_t _letters_end;
-    extern uint8_t _letters_start;
-    const size_t letter_size = &_letters_end - &_letters_start;
+    extern uint8_t _letters_zts_end;
+    extern uint8_t _letters_zts_start;
+    const size_t letter_size = &_letters_zts_end - &_letters_zts_start;
     options.compression = TILESET_COMP_4BIT;
     options.from_byte = 0x4100; // 'A' << 256
     options.pal_offset = 32;
     options.opacity = 1;
-    err = gfx_tileset_load(&vctx, &_letters_start, letter_size, &options);
+    err = gfx_tileset_load(&vctx, &_letters_zts_start, letter_size, &options);
     if (err) exit(1);
 
-    extern uint8_t _numbers_end;
-    extern uint8_t _numbers_start;
-    const size_t numbers_size = &_numbers_end - &_numbers_start;
+    extern uint8_t _numbers_zts_end;
+    extern uint8_t _numbers_zts_start;
+    const size_t numbers_size = &_numbers_zts_end - &_numbers_zts_start;
     options.from_byte = 0x3000; // '0' << 256
-    err = gfx_tileset_load(&vctx, &_numbers_start, numbers_size, &options);
+    err = gfx_tileset_load(&vctx, &_numbers_zts_start, numbers_size, &options);
     if (err) exit(1);
 
     /* Create two colored tiles for the background */
@@ -480,35 +480,3 @@ _y_ok:
     ld (hl), a
 __endasm;
 }
-
-
-#if !GENERATED_ASSETS
-
-/**
- * @brief Workaround to include a binary file in the program
- */
-void _snake_tileset(void) {
-    __asm
-__snake_tileset_start:
-    .incbin "assets/snake_tileset.zts"
-__snake_tileset_end:
-    __endasm;
-}
-
-void _letters_tileset(void) {
-    __asm
-__letters_start:
-    .incbin "assets/letters.zts"
-__letters_end:
-    __endasm;
-}
-
-void _numbers_tileset(void) {
-    __asm
-__numbers_start:
-    .incbin "assets/numbers.zts"
-__numbers_end:
-    __endasm;
-}
-
-#endif // !GENERATED_ASSETS

@@ -16,35 +16,26 @@ The game runs in the 8-bit colors 320x240px graphics mode, it takes advantage of
 
 ### Compiling
 
-To compile the demo, you will need both the Zeal 8-bit OS headers and the compiled Zeal 8-bit Video Board SDK, then make sure you defined both environment variables:
-```
-export ZVB_SDK_PATH=/path/to/zeal-svb-sdk
-export ZOS_PATH=/path/to/zeal-8bit-os
-```
+From this example directory, build with [Zeal Development Environment (ZDE)](https://github.com/zoul0813/zeal-dev-environment):
 
-#### Using CMake (recommended)
-
-Use the following command to build using cmake:
-
-```
-mkdir build
-cd build
-cmake ..
-make
+```sh
+zde cmake
 ```
 
-Keep in mind that you will need `sdcc` v4.2.0 or newer to compile the program.
+ZDE provides the toolchain and SDK environment. The output is placed in `build/`.
 
-> [!NOTE]
-> The resulting binary that contains the game is `bin/snake.bin`. This binary can be embedded to a Zeal 8-bit OS romdisk image or transferred via UARt to Zeal 8-bit Computer to be executed there.
+Alternatively, build directly with CMake using the following dependencies and environment variables.
 
-#### Using make (deprecated)
+Use CMake 3.16 or newer, SDCC 4.2.0 or newer, the Zeal 8-bit OS SDK (including its CMake toolchain and compiled SDCC runtime), and the compiled Zeal Video Board SDK:
 
-After defining both, you can simply use:
-
+```sh
+export ZVB_SDK_PATH=/path/to/Zeal-VideoBoard-SDK
+export ZOS_PATH=/path/to/Zeal-8-bit-OS
+cmake -S . -B build
+cmake --build build
 ```
-make
-```
+
+The resulting binary is `build/snake.bin`. Run it under Zeal 8-bit OS, after transferring it via UART or adding it to a romdisk image.
 
 ### Tileset
 

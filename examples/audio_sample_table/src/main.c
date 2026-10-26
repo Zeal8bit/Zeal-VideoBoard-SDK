@@ -10,12 +10,9 @@
 #include <zos_vfs.h>
 #include <zvb_sound.h>
 
-/**
- * These symbols are in fact defined in the inline assembly code in `_sample_raw` function.
- * This is a workaround to get raw binary files included in C code.
- */
-extern uint8_t _sample_end;
-extern uint8_t _sample_start;
+/** Asset boundaries provided by zos_add_assets. */
+extern uint8_t _hello_raw_audio_bin_end;
+extern uint8_t _hello_raw_audio_bin_start;
 
 int main(int argc, char** argv) {
     (void) argc;
@@ -34,18 +31,8 @@ int main(int argc, char** argv) {
         .divider = 3
     };
 
-    /* SDCC doesn't let us easily include a binary file, so use the
-     * `_sample_raw` function for that */
-    const size_t sample_size = &_sample_end - &_sample_start;
-    zvb_sound_play_samples(&config, &_sample_start, sample_size);
+    const size_t sample_size = &_hello_raw_audio_bin_end - &_hello_raw_audio_bin_start;
+    zvb_sound_play_samples(&config, &_hello_raw_audio_bin_start, sample_size);
     zvb_sound_set_volume(VOL_0);
     return 0;
-}
-
-void _sample_raw() {
-    __asm
-__sample_start:
-    .incbin "hello_raw_audio.bin"
-__sample_end:
-    __endasm;
 }

@@ -4,22 +4,26 @@ This example shows how to use the sound controller of the Zeal 8-bit VideoBoard 
 
 ### Compiling
 
-To compile the demo, you will need both the Zeal 8-bit OS headers and the compiled Zeal 8-bit Video Board SDK, then make sure you defined both environment variables:
-```
-export ZVB_SDK_PATH=/path/to/zeal-svb-sdk
-export ZOS_PATH=/path/to/zeal-8bit-os
-```
+From this example directory, build with [Zeal Development Environment (ZDE)](https://github.com/zoul0813/zeal-dev-environment):
 
-After defining both, you can simply use:
-
-```
-make
+```sh
+zde cmake
 ```
 
-Keep in mind that you will need `sdcc` v4.2.0 or newer to compile the program.
+ZDE provides the toolchain and SDK environment. The output is placed in `build/`.
 
-> [!NOTE]
-> The resulting binary is `bin/play.bin`, it can be embedded to a Zeal 8-bit OS romdisk image or transferred via UART to Zeal 8-bit Computer to be executed there.
+Alternatively, build directly with CMake using the following dependencies and environment variables.
+
+Use CMake 3.16 or newer, SDCC 4.2.0 or newer, the Zeal 8-bit OS SDK (including its CMake toolchain and compiled SDCC runtime), and the compiled Zeal Video Board SDK:
+
+```sh
+export ZVB_SDK_PATH=/path/to/Zeal-VideoBoard-SDK
+export ZOS_PATH=/path/to/Zeal-8-bit-OS
+cmake -S . -B build
+cmake --build build
+```
+
+The resulting binary is `build/play.bin`. Run it under Zeal 8-bit OS, after transferring it via UART or adding it to a romdisk image.
 
 ### Usage
 
