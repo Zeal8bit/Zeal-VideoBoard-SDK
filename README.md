@@ -116,6 +116,11 @@ Here is the changelog for the Zeal 8-bit Video Board firmware (bitstream)
 
 ## Contributing
 
+Pull requests and pushes to `main` automatically check that the SDK and all
+examples build, and that the committed libraries match the source code. Results
+are available in the pull request's checks. Include rebuilt libraries when
+submitting changes that affect them.
+
 Contributions are welcome! Feel free to fix any bug that you may see or encounter, or implement any feature that you find important.
 
 To contribute:

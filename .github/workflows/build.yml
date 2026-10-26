@@ -1,0 +1,57 @@
+name: SDK and examples CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build SDK, verify libraries, and build examples
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Setup ZDE toolchains and ZOS SDK
+        uses: zoul0813/zeal-dev-environment/github/setup-zde@main
+
+      - name: Build and verify
+        run: |
+          mkdir -p junit logs
+          set -o pipefail
+          zde exec bash -c 'export ZVB_SDK_PATH=/src; cd /src; pytest tests/test_build.py -v --junitxml=junit/build.xml' 2>&1 | tee logs/build.log
+
+      # Read-only reporting also works for pull requests from forks. GitHub
+      # publishes the job status to the PR; individual tests appear in its summary.
+      - name: Publish build results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: junit/*.xml
+          check_run: false
+          comment_mode: "off"
+          job_summary: true
+          compare_to_earlier_commit: false
+
+      - name: Upload build reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-reports
+          path: |
+            junit/*.xml
+            logs/*.log
+          if-no-files-found: ignore
+          retention-days: 7
