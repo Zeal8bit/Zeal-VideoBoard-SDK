@@ -51,20 +51,20 @@ void init(void) {
     if (err) exit(1);
 
     // Load the palette
-    extern uint8_t _cave_palette_end;
-    extern uint8_t _cave_palette_start;
-    const size_t palette_size = &_cave_palette_end - &_cave_palette_start;
-    err = gfx_palette_load(&vctx, &_cave_palette_start, palette_size, 0);
+    extern uint8_t _tilemap_ztp_end;
+    extern uint8_t _tilemap_ztp_start;
+    const size_t palette_size = &_tilemap_ztp_end - &_tilemap_ztp_start;
+    err = gfx_palette_load(&vctx, &_tilemap_ztp_start, palette_size, 0);
     if (err) exit(1);
 
     // Load the tiles
-    extern uint8_t _cave_tileset_end;
-    extern uint8_t _cave_tileset_start;
-    const size_t sprite_size = &_cave_tileset_end - &_cave_tileset_start;
+    extern uint8_t _tilemap_zts_end;
+    extern uint8_t _tilemap_zts_start;
+    const size_t sprite_size = &_tilemap_zts_end - &_tilemap_zts_start;
     gfx_tileset_options options = {
         .compression = TILESET_COMP_NONE,
     };
-    err = gfx_tileset_load(&vctx, &_cave_tileset_start, sprite_size, &options);
+    err = gfx_tileset_load(&vctx, &_tilemap_zts_start, sprite_size, &options);
     if (err) exit(1);
 
     // Draw the tilemap
@@ -82,10 +82,10 @@ void load_tilemap(void) {
     uint8_t line[WIDTH];
 
     // Load the tilemap
-    extern uint8_t _cave_tilemap_start;
+    extern uint8_t _tilemap_ztm_start;
     for (uint16_t i = 0; i < HEIGHT; i++) {
         uint16_t offset = i * WIDTH;
-        memcpy(&line, &_cave_tilemap_start + offset, WIDTH);
+        memcpy(&line, &_tilemap_ztm_start + offset, WIDTH);
         gfx_tilemap_load(&vctx, line, WIDTH, 0, 0, i);
     }
 }
@@ -130,28 +130,4 @@ void draw(void) {
         printf("graphics error: %d", err);
         exit(1);
     }
-}
-
-void _cave_palette(void) {
-    __asm__(
-    "__cave_palette_start:\n"
-    "    .incbin \"assets/tilemap.ztp\"\n"
-    "__cave_palette_end:\n"
-    );
-}
-
-void _cave_tileset(void) {
-    __asm__(
-    "__cave_tileset_start:\n"
-    "    .incbin \"assets/tilemap.zts\"\n"
-    "__cave_tileset_end:\n"
-    );
-}
-
-void _cave_tilemap(void) {
-    __asm__(
-    "__cave_tilemap_start:\n"
-    "    .incbin \"assets/tilemap.ztm\"\n"
-    "__cave_tilemap_end:\n"
-    );
 }

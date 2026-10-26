@@ -38,16 +38,36 @@ And that's it!
 
 ### Compiling
 
-To compile the demo, simply use:
+From this example directory, build with [Zeal Development Environment (ZDE)](https://github.com/zoul0813/zeal-dev-environment):
 
+```sh
+zde cmake
 ```
-make
+
+ZDE provides the toolchain and SDK environment. The output is placed in `build/`.
+
+Alternatively, build directly with CMake using the following dependencies and environment variables.
+
+Use CMake 3.16 or newer and `z88dk-z80asm`. The Zeal 8-bit OS checkout supplies the z88dk CMake toolchain; these demos run directly on the hardware without an OS.
+
+```sh
+export ZVB_SDK_PATH=/path/to/Zeal-VideoBoard-SDK
+export ZOS_PATH=/path/to/Zeal-8-bit-OS
+cmake -S . -B build
+cmake --build build
 ```
 
-Keep in mind that you will need `z88dk`'s `z80asm` to assemble the program.
+The build also requires Bash. Flash `build/parrot.bin.img`, which combines the program and image data. `build/parrot.bin` contains only the code.
 
-> [!IMPORTANT]
-> The resulting binary that contains both the program and the parrot image data is `parrot.bin.img` and **NOT** `parrot.bin` (which only contains the code). Therefore, to test on the real hardware, the `parrot.bin.img` file must be flashed.
+### Running in the emulator
+
+After building, run this command from the example directory:
+
+```sh
+zeal-native -r build/parrot.bin.img
+```
+
+The `-r` option loads the combined image as the emulator's ROM. The demo boots directly without Zeal OS and displays the parrot image.
 
 ### License
 
