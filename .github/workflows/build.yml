@@ -8,6 +8,8 @@ on:
 
 permissions:
   contents: read
+  checks: write
+  pull-requests: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -33,21 +35,22 @@ jobs:
           set -o pipefail
           zde exec bash -c 'export ZVB_SDK_PATH=/src; cd /src; pytest tests/test_build.py -v --junitxml=junit/build.xml' 2>&1 | tee logs/build.log
 
-      # Read-only reporting also works for pull requests from forks. GitHub
-      # publishes the job status to the PR; individual tests appear in its summary.
+      # Fork PRs receive a read-only token, so keep their results in the job
+      # summary. Other runs can publish a check and same-repository PRs a comment.
       - name: Publish build results
         if: always()
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           files: junit/*.xml
-          check_run: false
-          comment_mode: "off"
+          check_name: SDK and example build results
+          check_run: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+          comment_mode: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && 'always' || 'off' }}
           job_summary: true
           compare_to_earlier_commit: false
 
       - name: Upload build reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: build-reports
           path: |
