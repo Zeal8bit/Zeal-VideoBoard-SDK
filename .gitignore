@@ -72,3 +72,9 @@ cmake_install.cmake
 install_manifest.txt
 CTestTestfile.cmake
 Testing/
+
+# Test files
+__pycache__/
+.pytest_cache/
+/junit/
+/logs/
