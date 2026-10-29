@@ -1,7 +1,7 @@
 #
 # gif2zeal(
 #   <target>
-#   [COMPRESSED]
+#   [COMPRESSED [rle|lz]]
 #   [UNIQUE]
 #   [TILEMAP]
 #   [VERBOSE]
@@ -12,7 +12,7 @@
 #   FILES <gif> [<gif>...]
 # )
 # <target>: Existing CMake target that will depend on the generated assets.
-# COMPRESSED: Enable RLE compression for the generated tile data.
+# COMPRESSED [rle|lz]: Compress the generated tile data with RLE or LZ; RLE when no method is given.
 # UNIQUE: Remove duplicate tiles from the generated tileset.
 # TILEMAP: Generate a `.ztm` tilemap output in addition to `.zts` and `.ztp`.
 # VERBOSE: Enable verbose output from the conversion script.
@@ -27,8 +27,9 @@ function(gif2zeal target)
     list(REMOVE_AT ARGV 0)
 
     # Parse arguments
-    set(_FLAGS COMPRESSED UNIQUE TILEMAP VERBOSE DEBUG)
-    set(_KEYS BIT COLORS STRIP)
+    set(_FLAGS UNIQUE TILEMAP VERBOSE DEBUG)
+    # COMPRESSED is a key so it can take rle or lz; given alone it shows up in GIF2ZEAL_KEYWORDS_MISSING_VALUES
+    set(_KEYS BIT COLORS STRIP COMPRESSED)
 
     cmake_parse_arguments(
         GIF2ZEAL
@@ -40,7 +41,12 @@ function(gif2zeal target)
 
     # Compose extra_args_list for python script
     set(extra_args_list "")
-    if(GIF2ZEAL_COMPRESSED) # Compress with RLE
+    if(DEFINED GIF2ZEAL_COMPRESSED) # Compress with the given method
+        if(NOT GIF2ZEAL_COMPRESSED MATCHES "^(rle|lz)$")
+            message(FATAL_ERROR "gif2zeal: COMPRESSED takes rle or lz, not '${GIF2ZEAL_COMPRESSED}'")
+        endif()
+        list(APPEND extra_args_list "-z" "${GIF2ZEAL_COMPRESSED}")
+    elseif("COMPRESSED" IN_LIST GIF2ZEAL_KEYWORDS_MISSING_VALUES) # Compress with RLE
         list(APPEND extra_args_list "-z")
     endif()
     if(GIF2ZEAL_UNIQUE) # Remove duplicate tiles
