@@ -207,7 +207,7 @@ def convert(args):
       ox = (x * tile_width)
       oy = (y * tile_height)
       tile = gif.crop((ox, oy, ox + tile_width, oy + tile_height))
-      pixels = list(tile.getdata())
+      pixels = list(tile.tobytes())
 
       if(args.bpp == 1):
         op = pixels.copy()
